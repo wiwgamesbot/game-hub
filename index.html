@@ -1,2 +1,709 @@
-<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width,
+        initial-scale=1,
+        maximum-scale=1,
+        user-scalable=no"
+    >
+
+    <title>GAME HUB</title>
+
+    <!-- Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+
+    <!-- Наши стили -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         GAMES
+    ====================================================== -->
+
+    <section id="page-games" class="page active">
+
+        <div class="header">
+
+            <div>
+                <div class="header-title">
+                    GAME HUB
+                </div>
+
+                <div class="header-subtitle">
+                    Играй и соревнуйся
+                </div>
+            </div>
+
+            <div class="balance">
+                <span class="star">★</span>
+                <span id="balance">1000</span>
+            </div>
+
+        </div>
+
+
+        <!-- MINES -->
+
+        <div
+            class="game-card"
+            onclick="openGame('mines')"
+        >
+
+            <div class="game-icon">
+                💣
+            </div>
+
+            <h2>
+                Мины
+            </h2>
+
+            <p>
+                Открывай безопасные клетки,
+                увеличивай коэффициент и забирай ★
+            </p>
+
+            <div class="game-arrow">
+                →
+            </div>
+
+        </div>
+
+
+        <!-- ROCKET -->
+
+        <div
+            class="game-card"
+            onclick="openGame('rocket')"
+        >
+
+            <div class="game-icon">
+                🚀
+            </div>
+
+            <h2>
+                Ракета
+            </h2>
+
+            <p>
+                Следи за коэффициентом
+                и забирай свои ★ вовремя
+            </p>
+
+            <div class="game-arrow">
+                →
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MINES
+    ====================================================== -->
+
+    <section id="page-mines" class="page">
+
+        <div class="header">
+
+            <div>
+                <div class="header-title">
+                    💣 Мины
+                </div>
+
+                <div class="header-subtitle">
+                    Найди безопасные клетки
+                </div>
+            </div>
+
+            <div class="balance">
+                <span class="star">★</span>
+                <span id="balance">1000</span>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <!-- Настройки -->
+
+            <div class="minesSettings">
+
+                <div class="setting">
+
+                    <span class="settingLabel">
+                        МИН
+                    </span>
+
+                    <input
+                        id="mineCount"
+                        class="betInput"
+                        type="number"
+                        min="1"
+                        max="24"
+                        value="5"
+                        inputmode="numeric"
+                        style="height:42px;font-size:16px;"
+                    >
+
+                </div>
+
+
+                <div class="setting">
+
+                    <span class="settingLabel">
+                        КОЭФФИЦИЕНТ
+                    </span>
+
+                    <div
+                        id="mineMultiplier"
+                        class="settingValue"
+                    >
+                        1.00x
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Поле -->
+
+            <div
+                id="mineBoard"
+                class="mineBoard"
+            ></div>
+
+
+            <div class="mineMultiplier">
+                <span id="mineMultiplier">
+                    1.00x
+                </span>
+            </div>
+
+            <div class="mineMultiplierLabel">
+                текущий коэффициент
+            </div>
+
+
+            <!-- Ставка -->
+
+            <div
+                class="betBox"
+                style="margin-top:16px;"
+            >
+
+                <div class="betLabel">
+                    Сколько поставить?
+                </div>
+
+                <input
+                    id="minesBet"
+                    class="betInput"
+                    type="number"
+                    min="10"
+                    step="1"
+                    value="10"
+                    inputmode="numeric"
+                    placeholder="Введите количество ★"
+                >
+
+
+                <div class="quickBets">
+
+                    <button
+                        class="quickBet"
+                        onclick="setQuickBet('minesBet',10)"
+                    >
+                        10
+                    </button>
+
+                    <button
+                        class="quickBet"
+                        onclick="setQuickBet('minesBet',50)"
+                    >
+                        50
+                    </button>
+
+                    <button
+                        class="quickBet"
+                        onclick="setQuickBet('minesBet',100)"
+                    >
+                        100
+                    </button>
+
+                    <button
+                        id="maxMines"
+                        class="quickBet"
+                        onclick="setQuickBet('minesBet','MAX')"
+                    >
+                        MAX 1000
+                    </button>
+
+                </div>
+
+
+                <button
+                    id="startMines"
+                    class="mainButton"
+                    onclick="startMines()"
+                >
+                    Начать игру
+                </button>
+
+
+                <button
+                    id="cashoutMines"
+                    class="mainButton cashoutButton"
+                    onclick="cashoutMines()"
+                    disabled
+                >
+                    Забрать
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <button
+            class="mainButton"
+            onclick="openPage('games')"
+            style="background:#1b1e2a;"
+        >
+            ← Назад
+        </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         ROCKET
+    ====================================================== -->
+
+    <section id="page-rocket" class="page">
+
+        <div class="header">
+
+            <div>
+                <div class="header-title">
+                    🚀 Ракета
+                </div>
+
+                <div class="header-subtitle">
+                    Забери ★ до падения
+                </div>
+            </div>
+
+            <div class="balance">
+                <span class="star">★</span>
+                <span id="balance">1000</span>
+            </div>
+
+        </div>
+
+
+        <!-- ROCKET CARD -->
+
+        <div class="rocketGameCard">
+
+            <div class="rocketArea">
+
+                <div class="rocketGrid"></div>
+
+                <div
+                    id="rocketTrail"
+                    class="rocketTrail"
+                ></div>
+
+                <div
+                    id="rocketShip"
+                    class="rocketShip"
+                >
+                    🚀
+                </div>
+
+                <div
+                    id="rocketMultiplier"
+                    class="rocketMultiplier"
+                >
+                    1.00x
+                </div>
+
+                <div
+                    id="rocketStatus"
+                    class="rocketStatus"
+                >
+                    Подготовка...
+                </div>
+
+            </div>
+
+
+            <!-- HISTORY -->
+
+            <div
+                id="rocketHistory"
+                class="history"
+            ></div>
+
+        </div>
+
+
+        <!-- BET -->
+
+        <div
+            class="betBox"
+            style="margin-top:14px;"
+        >
+
+            <div class="betLabel">
+                Ставка ★
+            </div>
+
+            <input
+                id="rocketBet"
+                class="betInput"
+                type="number"
+                min="10"
+                step="1"
+                value="10"
+                inputmode="numeric"
+                placeholder="Введите количество ★"
+            >
+
+
+            <div class="quickBets">
+
+                <button
+                    class="quickBet"
+                    onclick="setQuickBet('rocketBet',10)"
+                >
+                    10
+                </button>
+
+                <button
+                    class="quickBet"
+                    onclick="setQuickBet('rocketBet',50)"
+                >
+                    50
+                </button>
+
+                <button
+                    class="quickBet"
+                    onclick="setQuickBet('rocketBet',100)"
+                >
+                    100
+                </button>
+
+                <button
+                    id="maxRocket"
+                    class="quickBet"
+                    onclick="setQuickBet('rocketBet','MAX')"
+                >
+                    MAX 1000
+                </button>
+
+            </div>
+
+
+            <button
+                id="placeRocketBet"
+                class="mainButton"
+                onclick="placeRocketBet()"
+            >
+                Поставить ★
+            </button>
+
+
+            <button
+                id="cashoutRocket"
+                class="mainButton cashoutButton"
+                onclick="cashoutRocket()"
+                disabled
+            >
+                Забрать
+            </button>
+
+        </div>
+
+
+        <button
+            class="mainButton"
+            onclick="openPage('games')"
+            style="background:#1b1e2a;"
+        >
+            ← Назад
+        </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         TOP
+    ====================================================== -->
+
+    <section id="page-top" class="page">
+
+        <div class="header">
+
+            <div>
+                <div class="header-title">
+                    🏆 Топ
+                </div>
+
+                <div class="header-subtitle">
+                    Лучшие игроки
+                </div>
+            </div>
+
+            <div class="balance">
+                <span class="star">★</span>
+                <span id="balance">1000</span>
+            </div>
+
+        </div>
+
+
+        <div
+            id="leaderboard"
+            class="leaderboard"
+        ></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PROFILE
+    ====================================================== -->
+
+    <section id="page-profile" class="page">
+
+        <div class="header">
+
+            <div>
+                <div class="header-title">
+                    👤 Профиль
+                </div>
+
+                <div class="header-subtitle">
+                    Твоя статистика
+                </div>
+            </div>
+
+            <div class="balance">
+                <span class="star">★</span>
+                <span id="balance">1000</span>
+            </div>
+
+        </div>
+
+
+        <!-- PROFILE -->
+
+        <div class="profileHero">
+
+            <div class="profileAvatar">
+                👤
+            </div>
+
+            <div
+                id="profileName"
+                class="profileName"
+            >
+                Игрок
+            </div>
+
+            <div class="profileId">
+                GAME HUB
+            </div>
+
+
+            <div class="statsGrid">
+
+                <div class="statCard">
+
+                    <div
+                        id="profileBalance"
+                        class="statNumber"
+                    >
+                        1000
+                    </div>
+
+                    <div class="statLabel">
+                        Баланс ★
+                    </div>
+
+                </div>
+
+
+                <div class="statCard">
+
+                    <div
+                        id="profileTaps"
+                        class="statNumber"
+                    >
+                        0
+                    </div>
+
+                    <div class="statLabel">
+                        Нажатий
+                    </div>
+
+                </div>
+
+
+                <div class="statCard">
+
+                    <div
+                        id="profileMines"
+                        class="statNumber"
+                    >
+                        0
+                    </div>
+
+                    <div class="statLabel">
+                        Побед в минах
+                    </div>
+
+                </div>
+
+
+                <div class="statCard">
+
+                    <div
+                        id="profileRocket"
+                        class="statNumber"
+                    >
+                        —
+                    </div>
+
+                    <div class="statLabel">
+                        Лучший Rocket
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="statCard"
+                    style="grid-column:1/-1;"
+                >
+
+                    <div
+                        id="profileTotalWon"
+                        class="statNumber"
+                    >
+                        0
+                    </div>
+
+                    <div class="statLabel">
+                        Всего выиграно ★
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TAPPER -->
+
+            <button
+                class="tapperButton"
+                onclick="tapStar()"
+                title="Получить +100 ★"
+            >
+                ★
+            </button>
+
+            <div class="card-text">
+                Нажми на ★ и получи +100 виртуальных очков
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         BOTTOM NAV
+    ====================================================== -->
+
+    <nav class="bottomNav">
+
+        <button
+            id="nav-games"
+            class="navButton active"
+            onclick="openPage('games')"
+        >
+
+            <span class="navIcon">
+                🎮
+            </span>
+
+            Игры
+
+        </button>
+
+
+        <button
+            id="nav-top"
+            class="navButton"
+            onclick="openPage('top')"
+        >
+
+            <span class="navIcon">
+                🏆
+            </span>
+
+            Топ
+
+        </button>
+
+
+        <button
+            id="nav-profile"
+            class="navButton"
+            onclick="openPage('profile')"
+        >
+
+            <span class="navIcon">
+                👤
+            </span>
+
+            Профиль
+
+        </button>
+
+    </nav>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div
+        id="toast"
+        class="toast"
+    ></div>
+
+</div>
+
+
+<!-- =========================================================
+     GAME LOGIC
+========================================================= -->
+
 <script src="game.js"></script>
+
+</body>
+</html>
