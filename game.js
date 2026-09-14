@@ -708,87 +708,7 @@ function recentLowStreak() {
     return streak;
 }
 
-function generateRocketCrashPoint() {
 
-    /*
-       0.1% exact 340x.
-       This result does NOT depend on the player's bet.
-    */
-
-    if (Math.random() < 0.001) {
-        return 340.00;
-    }
-
-    const streak = recentLowStreak();
-
-    /*
-       After several low rounds:
-       increased chance of a bigger round.
-       Not guaranteed.
-    */
-
-    if (streak >= 3 && Math.random() < 0.45) {
-
-        return Number(
-            randomFloat(2.01, 6.50).toFixed(2)
-        );
-    }
-
-    const roll = Math.random();
-
-    if (roll < 0.55) {
-
-        return Number(
-            randomFloat(1.01, 1.80).toFixed(2)
-        );
-    }
-
-    if (roll < 0.82) {
-
-        return Number(
-            randomFloat(1.81, 3.50).toFixed(2)
-        );
-    }
-
-    if (roll < 0.94) {
-
-        return Number(
-            randomFloat(3.51, 7.50).toFixed(2)
-        );
-    }
-
-    if (roll < 0.975) {
-
-        return Number(
-            randomFloat(7.51, 10.00).toFixed(2)
-        );
-    }
-
-    if (roll < 0.99) {
-
-        return Number(
-            randomFloat(10.01, 18.00).toFixed(2)
-        );
-    }
-
-    if (roll < 0.997) {
-
-        return Number(
-            randomFloat(18.01, 35.00).toFixed(2)
-        );
-    }
-
-    if (roll < 0.999) {
-
-        return Number(
-            randomFloat(35.01, 100.00).toFixed(2)
-        );
-    }
-
-    return Number(
-        randomFloat(100.01, 200.00).toFixed(2)
-    );
-}
 
 
 /* =========================
@@ -840,7 +760,76 @@ function updateRocketButtons() {
             rocketGame.bet <= 0;
     }
 }
+function generateRocketCrashPoint() {
 
+    // Очень редкий супер-раунд
+    if (Math.random() < 0.001) {
+        return 340.00;
+    }
+
+    const streak = recentLowStreak();
+
+    // Если несколько раундов подряд были маленькими,
+    // повышаем шанс на более крупный коэффициент.
+    if (streak >= 3 && Math.random() < 0.55) {
+        return Number(
+            randomFloat(2.01, 7.00).toFixed(2)
+        );
+    }
+
+    const roll = Math.random();
+
+    // 1.01–1.50x — теперь только 25%
+    if (roll < 0.25) {
+        return Number(
+            randomFloat(1.01, 1.50).toFixed(2)
+        );
+    }
+
+    // 1.51–2.50x — 30%
+    if (roll < 0.55) {
+        return Number(
+            randomFloat(1.51, 2.50).toFixed(2)
+        );
+    }
+
+    // 2.51–5.00x — 25%
+    if (roll < 0.80) {
+        return Number(
+            randomFloat(2.51, 5.00).toFixed(2)
+        );
+    }
+
+    // 5.01–10x — 10%
+    if (roll < 0.90) {
+        return Number(
+            randomFloat(5.01, 10.00).toFixed(2)
+        );
+    }
+
+    // 10.01–25x — 6%
+    if (roll < 0.96) {
+        return Number(
+            randomFloat(10.01, 25.00).toFixed(2)
+        );
+    }
+
+    // 25.01–100x — 3.5%
+    if (roll < 0.995) {
+        return Number(
+            randomFloat(25.01, 100.00).toFixed(2)
+        );
+    }
+
+    // 100.01–200x — 0.4%
+    if (roll < 0.999) {
+        return Number(
+            randomFloat(100.01, 200.00).toFixed(2)
+        );
+    }
+
+    return 340.00;
+}
 
 /* =========================
    PLACE ROCKET BET
