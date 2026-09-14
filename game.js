@@ -1133,73 +1133,134 @@ function animateRocket() {
            L45 64
            L50 46Z"
         fill="#734cff"
-        stroke="#b79cff"
-        stroke-width="1.5"
-    />
+<svg
+    viewBox="0 0 120 80"
+    width="120"
+    height="80"
+    xmlns="http://www.w3.org/2000/svg"
+    style="display:block; overflow:visible;"
+>
+    <defs>
+        <linearGradient id="newRocketBody" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#dff7ff"/>
+            <stop offset="70%" stop-color="#8de8ff"/>
+            <stop offset="100%" stop-color="#5b8cff"/>
+        </linearGradient>
 
-    <!-- корпус ракеты -->
+        <linearGradient id="newRocketWindow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="30%" stop-color="#8ff4ff"/>
+            <stop offset="100%" stop-color="#477cff"/>
+        </linearGradient>
+
+        <linearGradient id="newRocketFlame" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="30%" stop-color="#ffe66d"/>
+            <stop offset="65%" stop-color="#ff8a3d"/>
+            <stop offset="100%" stop-color="#ff3d81"/>
+        </linearGradient>
+
+        <filter id="newRocketGlow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- пламя -->
     <path
-        d="M45 25
-           C55 17 72 14 91 20
-           L108 40
-           L91 60
-           C72 66 55 63 45 55
-           C39 48 39 32 45 25Z"
-        fill="url(#rocketBody2)"
-        stroke="#9276ff"
-        stroke-width="2"
-        filter="url(#rocketGlow2)"
+        d="M20 40
+           C10 34 4 35 0 40
+           C7 43 10 48 20 40Z"
+        fill="url(#newRocketFlame)"
+        opacity="0.95"
+        filter="url(#newRocketGlow)"
     />
 
-    <!-- нос -->
+    <!-- внешнее пламя -->
     <path
-        d="M91 20
-           L108 40
-           L91 60
-           C96 49 98 31 91 20Z"
-        fill="#cfc8ff"
-        stroke="#8d73ff"
-        stroke-width="1.5"
+        d="M23 40
+           C14 30 7 31 2 35
+           C9 40 10 47 2 53
+           C10 55 17 50 23 40Z"
+        fill="#ff5b3d"
+        opacity="0.55"
     />
 
-    <!-- окно -->
-    <circle
-        cx="72"
-        cy="40"
-        r="10"
-        fill="url(#rocketWindow2)"
+    <!-- корпус -->
+    <path
+        d="M20 40
+           C31 18 51 8 78 8
+           C94 8 108 14 116 24
+           C119 28 120 36 120 40
+           C120 44 119 52 116 56
+           C108 66 94 72 78 72
+           C51 72 31 62 20 40Z"
+        fill="url(#newRocketBody)"
         stroke="#ffffff"
         stroke-width="2"
-        filter="url(#rocketGlow2)"
+        filter="url(#newRocketGlow)"
     />
 
-    <!-- маленькое отражение окна -->
-    <circle
-        cx="69"
-        cy="37"
-        r="3"
-        fill="#ffffff"
-        opacity=".9"
-    />
-
-    <!-- заднее сопло -->
-    <rect
-        x="40"
-        y="32"
-        width="9"
-        height="16"
-        rx="4"
-        fill="#5d43c9"
-        stroke="#9d8aff"
+    <!-- верхнее крыло -->
+    <path
+        d="M57 15
+           L48 2
+           C47 0 50 0 52 1
+           L72 10Z"
+        fill="#77dfff"
+        stroke="#ffffff"
         stroke-width="1.5"
     />
+
+    <!-- нижнее крыло -->
+    <path
+        d="M57 65
+           L48 78
+           C47 80 50 80 52 79
+           L72 70Z"
+        fill="#77dfff"
+        stroke="#ffffff"
+        stroke-width="1.5"
+    />
+
+    <!-- иллюминатор -->
+    <circle
+        cx="82"
+        cy="40"
+        r="14"
+        fill="url(#newRocketWindow)"
+        stroke="#ffffff"
+        stroke-width="2.5"
+    />
+
+    <!-- блик -->
+    <circle
+        cx="77"
+        cy="35"
+        r="4"
+        fill="#ffffff"
+        opacity="0.9"
+    />
+
+    <!-- маленькая подсветка корпуса -->
+    <path
+        d="M42 27 C52 18 63 14 73 13"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="3"
+        stroke-linecap="round"
+        opacity="0.7"
+    />
 </svg>
-`;
 
         ship.style.width = "100px";
 ship.style.height = "68px";
 ship.style.fontSize = "0";
-ship.style.setProperty("transform", "rotate(-25deg)", "important");
+ship.style.setProperty("transform", "rotate(0deg)", "important");
 ship.style.animation = "none";
        }
     const trail = $("rocketTrail");
