@@ -1203,51 +1203,116 @@ function updateLeaderboard() {
             )
             : "Игрок";
 
+
     const players = [
+
         {
-            name: "🚀 RocketMaster",
-            score: 15420
+            name: "RocketMaster",
+            score: 15420,
+            avatar: "R",
+            avatarClass: "gold"
         },
+
         {
-            name: "💎 StarKing",
-            score: 12100
+            name: "StarKing",
+            score: 12100,
+            avatar: "S",
+            avatarClass: "blue"
         },
+
         {
-            name: "🔥 PlayerOne",
-            score: 9800
+            name: "PlayerOne",
+            score: 9800,
+            avatar: "P",
+            avatarClass: "pink"
         },
+
         {
             name: name,
-            score: Math.floor(balance)
+            score: Math.floor(balance),
+            avatar: name
+                .charAt(0)
+                .toUpperCase(),
+            avatarClass: "user"
         }
+
     ];
+
 
     players.sort(
         (a, b) => b.score - a.score
     );
 
+
     board.innerHTML = "";
+
 
     players.forEach((player, index) => {
 
-        const row = document.createElement("div");
+        const row =
+            document.createElement("div");
 
-        row.className = "leaderRow";
+        row.className =
+            "leaderRow";
 
-        row.innerHTML =
-            "<div class='leaderPlace'>" +
-            (index + 1) +
-            "</div>" +
-            "<div class='leaderName'>" +
-            escapeHtml(player.name) +
-            "</div>" +
-            "<div class='leaderScore'>" +
-            player.score +
-            " ★</div>";
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "leaderAvatar " +
+            player.avatarClass;
+
+        avatar.textContent =
+            player.avatar;
+
+
+        const place =
+            document.createElement("div");
+
+        place.className =
+            "leaderPlace";
+
+        place.textContent =
+            index + 1;
+
+
+        const nameElement =
+            document.createElement("div");
+
+        nameElement.className =
+            "leaderName";
+
+        nameElement.textContent =
+            player.name;
+
+
+        const score =
+            document.createElement("div");
+
+        score.className =
+            "leaderScore";
+
+        score.textContent =
+            player.score.toLocaleString("ru-RU") +
+            " ★";
+
+
+        row.appendChild(place);
+
+        row.appendChild(avatar);
+
+        row.appendChild(nameElement);
+
+        row.appendChild(score);
+
 
         board.appendChild(row);
+
     });
+
 }
+
 
 function escapeHtml(value) {
 
