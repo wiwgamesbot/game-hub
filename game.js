@@ -978,7 +978,6 @@ function resetRocketVisual() {
 }
 
 function animateRocket() {
-
     const ship = $("rocketShip");
     const trail = $("rocketTrail");
 
@@ -989,17 +988,14 @@ function animateRocket() {
     const start = performance.now();
 
     function frame(now) {
-
         if (!rocketGame.active) {
             return;
         }
 
         const elapsed = (now - start) / 1000;
 
-        rocketGame.multiplier = Math.max(
-            1,
-            Math.pow(1.12, elapsed * 4)
-        );
+        // Плавный, равномерный рост коэффициента
+        rocketGame.multiplier = 1 + elapsed * 0.65;
 
         if (
             rocketGame.multiplier >=
@@ -1016,17 +1012,23 @@ function animateRocket() {
 
         updateRocketMultiplier();
 
+        // Плавное равномерное движение ракеты
         const progress = Math.min(
             1,
-            rocketGame.multiplier /
-            Math.max(rocketGame.crashPoint, 2)
+            elapsed / 12
         );
 
-        const left = 28 + progress * 250;
-        const bottom = 30 + progress * 170;
+        const left =
+            28 + progress * 250;
 
-        ship.style.left = left + "px";
-        ship.style.bottom = bottom + "px";
+        const bottom =
+            30 + progress * 170;
+
+        ship.style.left =
+            left + "px";
+
+        ship.style.bottom =
+            bottom + "px";
 
         if (trail) {
             trail.style.width =
@@ -1042,7 +1044,6 @@ function animateRocket() {
     rocketGame.animation =
         requestAnimationFrame(frame);
 }
-
 
 /* =========================
    ROCKET ROUND
