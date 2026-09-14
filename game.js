@@ -985,6 +985,12 @@ function animateRocket() {
         return;
     }
 
+    const area = ship.parentElement;
+
+    if (!area) {
+        return;
+    }
+
     const start = performance.now();
 
     function frame(now) {
@@ -994,35 +1000,48 @@ function animateRocket() {
 
         const elapsed = (now - start) / 1000;
 
-        // Плавный, равномерный рост коэффициента
+        // Плавный равномерный рост коэффициента
         rocketGame.multiplier = 1 + elapsed * 0.65;
 
-        if (
-            rocketGame.multiplier >=
-            rocketGame.crashPoint
-        ) {
-            rocketGame.multiplier =
-                rocketGame.crashPoint;
+        if (rocketGame.multiplier >= rocketGame.crashPoint) {
+            rocketGame.multiplier = rocketGame.crashPoint;
 
             updateRocketMultiplier();
             crashRocket();
-
             return;
         }
 
         updateRocketMultiplier();
 
-        // Плавное равномерное движение ракеты
+        // Размеры области ракеты
+        const areaWidth = area.clientWidth;
+        const areaHeight = area.clientHeight;
+
+        const shipWidth = ship.offsetWidth || 43;
+        const shipHeight = ship.offsetHeight || 43;
+
+        // Максимальные координаты внутри области
+        const maxLeft = Math.max(
+            28,
+            areaWidth - shipWidth - 20
+        );
+
+        const maxBottom = Math.max(
+            30,
+            areaHeight - shipHeight - 20
+        );
+
+        // Одинаковая траектория на разных экранах
         const progress = Math.min(
             1,
             elapsed / 12
         );
 
         const left =
-            28 + progress * 250;
+            28 + progress * (maxLeft - 28);
 
         const bottom =
-            30 + progress * 170;
+            30 + progress * (maxBottom - 30);
 
         ship.style.left =
             left + "px";
@@ -1032,7 +1051,7 @@ function animateRocket() {
 
         if (trail) {
             trail.style.width =
-                (180 + progress * 120) + "px";
+                (180 + progress * 80) + "px";
         }
 
         rocketGame.animation =
