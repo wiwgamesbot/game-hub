@@ -1,7 +1,7 @@
 /* =========================================================
    GAME HUB — GAME LOGIC
-   Версия: 1.0
-   Все ★ пока виртуальные.
+   Версия 1.1
+   Все ★ виртуальные.
 ========================================================= */
 
 "use strict";
@@ -16,7 +16,6 @@ if (tg) {
     tg.ready();
     tg.expand();
 }
-
 
 /* =========================================================
    STORAGE
@@ -40,11 +39,8 @@ const defaultData = {
     totalLost: 0,
 
     rocketHistory: [],
-
     achievements: []
 };
-
-let data = loadData();
 
 function loadData() {
     try {
@@ -59,11 +55,13 @@ function loadData() {
             ...JSON.parse(saved)
         };
 
-    } catch (error) {
-        console.error("Storage error:", error);
+    } catch (e) {
+        console.error(e);
         return { ...defaultData };
     }
 }
+
+let data = loadData();
 
 function saveData() {
     localStorage.setItem(
@@ -73,7 +71,6 @@ function saveData() {
 
     updateAllUI();
 }
-
 
 /* =========================================================
    TELEGRAM USER
@@ -103,9 +100,8 @@ function getTelegramUser() {
 
 const currentUser = getTelegramUser();
 
-
 /* =========================================================
-   DOM HELPERS
+   DOM
 ========================================================= */
 
 function $(id) {
@@ -113,13 +109,13 @@ function $(id) {
 }
 
 function setText(id, value) {
+
     const element = $(id);
 
     if (element) {
         element.textContent = value;
     }
 }
-
 
 /* =========================================================
    TOAST
@@ -131,9 +127,7 @@ function toast(message) {
 
     const element = $("toast");
 
-    if (!element) {
-        return;
-    }
+    if (!element) return;
 
     element.textContent = message;
     element.classList.add("show");
@@ -145,7 +139,6 @@ function toast(message) {
     }, 2200);
 }
 
-
 /* =========================================================
    BALANCE
 ========================================================= */
@@ -154,19 +147,15 @@ function addBalance(amount) {
 
     amount = Math.floor(Number(amount));
 
-    if (!Number.isFinite(amount)) {
+    if (!Number.isFinite(amount) || amount <= 0) {
         return;
     }
 
     data.balance += amount;
-
-    if (amount > 0) {
-        data.totalWon += amount;
-    }
+    data.totalWon += amount;
 
     saveData();
 }
-
 
 function removeBalance(amount) {
 
@@ -181,7 +170,6 @@ function removeBalance(amount) {
     }
 
     data.balance -= amount;
-
     data.totalLost += amount;
 
     saveData();
@@ -189,9 +177,8 @@ function removeBalance(amount) {
     return true;
 }
 
-
 /* =========================================================
-   UI UPDATE
+   UI
 ========================================================= */
 
 function updateAllUI() {
@@ -237,7 +224,6 @@ function updateAllUI() {
     updateLeaderboard();
 }
 
-
 /* =========================================================
    NAVIGATION
 ========================================================= */
@@ -269,32 +255,24 @@ function openPage(pageName) {
     }
 }
 
-
-/* =========================================================
-   GAMES MENU
-========================================================= */
-
 function openGame(gameName) {
 
     if (gameName === "mines") {
         openPage("mines");
-        return;
     }
 
     if (gameName === "rocket") {
         openPage("rocket");
-        return;
     }
 }
 
-
 /* =========================================================
-   TAP GAME
+   TAPPER
 ========================================================= */
 
 function tapStar() {
 
-    data.taps += 1;
+    data.taps++;
     data.balance += 100;
 
     saveData();
@@ -303,7 +281,6 @@ function tapStar() {
 
     checkAchievements();
 }
-
 
 /* =========================================================
    BET INPUT
@@ -326,26 +303,20 @@ function getBetInput(id) {
     return value;
 }
 
-
 function setBetInput(id, value) {
 
     const input = $(id);
 
-    if (!input) {
-        return;
-    }
+    if (!input) return;
 
     input.value = Math.floor(value);
 }
-
 
 function setQuickBet(inputId, value) {
 
     const input = $(inputId);
 
-    if (!input) {
-        return;
-    }
+    if (!input) return;
 
     if (value === "MAX") {
         input.value = Math.floor(data.balance);
@@ -354,77 +325,67 @@ function setQuickBet(inputId, value) {
     }
 }
 
-
-/* =========================================================
-   QUICK BETS
-========================================================= */
-
 function updateQuickBets() {
 
-    const maxButton = $("maxMines");
+    const mines = $("maxMines");
 
-    if (maxButton) {
-        maxButton.textContent =
+    if (mines) {
+        mines.textContent =
             "MAX " +
-            Math.floor(data.balance).toLocaleString("ru-RU");
+            Math.floor(data.balance)
+                .toLocaleString("ru-RU");
     }
 
-    const maxRocket = $("maxRocket");
+    const rocket = $("maxRocket");
 
-    if (maxRocket) {
-        maxRocket.textContent =
+    if (rocket) {
+        rocket.textContent =
             "MAX " +
-            Math.floor(data.balance).toLocaleString("ru-RU");
+            Math.floor(data.balance)
+                .toLocaleString("ru-RU");
     }
 }
-
 
 /* =========================================================
    MINES
 ========================================================= */
 
 /*
-   Чем больше мин — тем быстрее растёт коэффициент.
+   Рост коэффициента за каждую безопасную клетку.
+
+   24 мины:
+   1 безопасная клетка = 25x.
 
    Формула:
 
-   multiplier =
-   1 + количество открытых безопасных клеток × рост
-
-   Для 24 мин:
-   первый безопасный ход = 25x
-
-   Поэтому рост для 24 мин = 24.
-
-   Значения можно потом спокойно изменить.
+   1 + safeOpened * growth
 */
 
 const MINES_GROWTH = [
-
-    0.10,  // 1
-    0.20,  // 2
-    0.30,  // 3
-    0.45,  // 4
-    0.60,  // 5
-    0.80,  // 6
-    1.00,  // 7
-    1.25,  // 8
-    1.50,  // 9
-    1.80,  // 10
-    2.20,  // 11
-    2.70,  // 12
-    3.20,  // 13
-    3.80,  // 14
-    4.50,  // 15
-    5.30,  // 16
-    6.20,  // 17
-    7.30,  // 18
-    8.50,  // 19
-    10.0,  // 20
-    12.0,  // 21
-    14.5,  // 22
-    18.0,  // 23
-    24.0   // 24 → 25x после первой безопасной клетки
+    0.10,
+    0.20,
+    0.30,
+    0.45,
+    0.60,
+    0.80,
+    1.00,
+    1.25,
+    1.50,
+    1.80,
+    2.20,
+    2.70,
+    3.20,
+    3.80,
+    4.50,
+    5.30,
+    6.20,
+    7.30,
+    8.50,
+    10.0,
+    12.0,
+    14.5,
+    18.0,
+    24.0
 ];
 
 let minesGame = {
@@ -432,15 +393,9 @@ let minesGame = {
     bet: 0,
     mines: 5,
     cells: [],
-    opened: [],
-    multiplier: 1,
-    safeOpened: 0
+    safeOpened: 0,
+    multiplier: 1
 };
-
-
-/* =========================================================
-   MINES MULTIPLIER
-========================================================= */
 
 function getMinesGrowth(mines) {
 
@@ -452,73 +407,16 @@ function getMinesGrowth(mines) {
     return MINES_GROWTH[mines - 1];
 }
 
-
 function getMineMultiplier(mines, safeOpened) {
-
-    const growth = getMinesGrowth(mines);
 
     if (safeOpened <= 0) {
         return 1;
     }
 
-    return 1 + safeOpened * growth;
+    return 1 +
+        safeOpened *
+        getMinesGrowth(mines);
 }
-
-
-/* =========================================================
-   CREATE MINES
-========================================================= */
-
-function createMinesBoard() {
-
-    const minesInput = $("mineCount");
-
-    let mineCount = Math.floor(
-        Number(minesInput?.value || 5)
-    );
-
-    if (!Number.isFinite(mineCount)) {
-        mineCount = 5;
-    }
-
-    mineCount = Math.max(
-        1,
-        Math.min(24, mineCount)
-    );
-
-    minesGame.mines = mineCount;
-
-    const cells = Array.from(
-        { length: 25 },
-        (_, index) => index
-    );
-
-    shuffle(cells);
-
-    const minePositions =
-        cells.slice(0, mineCount);
-
-    minesGame.cells = Array.from(
-        { length: 25 },
-        (_, index) => ({
-            index,
-            mine: minePositions.includes(index),
-            open: false
-        })
-    );
-
-    minesGame.opened = [];
-    minesGame.safeOpened = 0;
-    minesGame.multiplier = 1;
-
-    renderMinesBoard();
-    updateMinesMultiplier();
-}
-
-
-/* =========================================================
-   SHUFFLE
-========================================================= */
 
 function shuffle(array) {
 
@@ -543,18 +441,62 @@ function shuffle(array) {
     return array;
 }
 
+function createMinesBoard() {
 
-/* =========================================================
-   MINES BOARD RENDER
-========================================================= */
+    const input = $("mineCount");
+
+    let mineCount =
+        Math.floor(Number(input?.value || 5));
+
+    if (!Number.isFinite(mineCount)) {
+        mineCount = 5;
+    }
+
+    mineCount = Math.max(
+        1,
+        Math.min(24, mineCount)
+    );
+
+    if (input) {
+        input.value = mineCount;
+    }
+
+    const positions =
+        Array.from(
+            { length: 25 },
+            (_, i) => i
+        );
+
+    shuffle(positions);
+
+    const minePositions =
+        positions.slice(0, mineCount);
+
+    minesGame.mines = mineCount;
+
+    minesGame.cells =
+        Array.from(
+            { length: 25 },
+            (_, index) => ({
+                index,
+                mine:
+                    minePositions.includes(index),
+                open: false
+            })
+        );
+
+    minesGame.safeOpened = 0;
+    minesGame.multiplier = 1;
+
+    renderMinesBoard();
+    updateMinesMultiplier();
+}
 
 function renderMinesBoard() {
 
     const board = $("mineBoard");
 
-    if (!board) {
-        return;
-    }
+    if (!board) return;
 
     board.innerHTML = "";
 
@@ -564,7 +506,9 @@ function renderMinesBoard() {
             document.createElement("button");
 
         button.className = "mineCell";
-        button.dataset.index = cell.index;
+
+        button.dataset.index =
+            cell.index;
 
         button.textContent = "•";
 
@@ -576,11 +520,6 @@ function renderMinesBoard() {
         board.appendChild(button);
     });
 }
-
-
-/* =========================================================
-   START MINES
-========================================================= */
 
 function startMines() {
 
@@ -609,7 +548,7 @@ function startMines() {
     minesGame.active = true;
     minesGame.bet = bet;
 
-    data.minesPlayed += 1;
+    data.minesPlayed++;
 
     createMinesBoard();
 
@@ -617,11 +556,6 @@ function startMines() {
 
     toast("Игра началась");
 }
-
-
-/* =========================================================
-   OPEN MINE CELL
-========================================================= */
 
 function openMineCell(index) {
 
@@ -636,19 +570,18 @@ function openMineCell(index) {
         return;
     }
 
-    cell.open = true;
-
-    const board =
-        $("mineBoard");
+    const board = $("mineBoard");
 
     const button =
         board?.querySelector(
             `[data-index="${index}"]`
         );
 
-    if (!button) {
-        return;
-    }
+    if (!button) return;
+
+    cell.open = true;
+
+    /* МИНА */
 
     if (cell.mine) {
 
@@ -666,7 +599,6 @@ function openMineCell(index) {
         minesGame.multiplier = 1;
 
         updateMinesButtons();
-
         updateMinesMultiplier();
 
         toast("💥 Мина! Ставка потеряна");
@@ -674,7 +606,7 @@ function openMineCell(index) {
         return;
     }
 
-    cell.open = true;
+    /* БЕЗОПАСНАЯ КЛЕТКА */
 
     button.classList.add(
         "open",
@@ -683,9 +615,7 @@ function openMineCell(index) {
 
     button.textContent = "✓";
 
-    minesGame.opened.push(index);
-
-    minesGame.safeOpened += 1;
+    minesGame.safeOpened++;
 
     minesGame.multiplier =
         getMineMultiplier(
@@ -698,34 +628,22 @@ function openMineCell(index) {
     checkMinesWin();
 }
 
-
-/* =========================================================
-   REVEAL MINES
-========================================================= */
-
 function revealAllMines() {
 
-    const board =
-        $("mineBoard");
+    const board = $("mineBoard");
 
-    if (!board) {
-        return;
-    }
+    if (!board) return;
 
     minesGame.cells.forEach(cell => {
 
-        if (!cell.mine) {
-            return;
-        }
+        if (!cell.mine) return;
 
         const button =
             board.querySelector(
                 `[data-index="${cell.index}"]`
             );
 
-        if (!button) {
-            return;
-        }
+        if (!button) return;
 
         button.classList.add(
             "open",
@@ -735,11 +653,6 @@ function revealAllMines() {
         button.textContent = "💣";
     });
 }
-
-
-/* =========================================================
-   MINES CASHOUT
-========================================================= */
 
 function cashoutMines() {
 
@@ -752,25 +665,21 @@ function cashoutMines() {
         return;
     }
 
-    const result = Math.floor(
-        minesGame.bet *
-        minesGame.multiplier
-    );
-
-    const profit =
-        result - minesGame.bet;
+    const result =
+        Math.floor(
+            minesGame.bet *
+            minesGame.multiplier
+        );
 
     addBalance(result);
 
-    data.minesWins += 1;
+    data.minesWins++;
 
-    if (
-        minesGame.multiplier >
-        data.minesBest
-    ) {
-        data.minesBest =
-            minesGame.multiplier;
-    }
+    data.minesBest =
+        Math.max(
+            data.minesBest,
+            minesGame.multiplier
+        );
 
     minesGame.active = false;
     minesGame.bet = 0;
@@ -783,11 +692,6 @@ function cashoutMines() {
 
     saveData();
 }
-
-
-/* =========================================================
-   MINES AUTO WIN
-========================================================= */
 
 function checkMinesWin() {
 
@@ -807,15 +711,13 @@ function checkMinesWin() {
 
         addBalance(result);
 
-        data.minesWins += 1;
+        data.minesWins++;
 
-        if (
-            minesGame.multiplier >
-            data.minesBest
-        ) {
-            data.minesBest =
-                minesGame.multiplier;
-        }
+        data.minesBest =
+            Math.max(
+                data.minesBest,
+                minesGame.multiplier
+            );
 
         minesGame.active = false;
         minesGame.bet = 0;
@@ -830,11 +732,6 @@ function checkMinesWin() {
     }
 }
 
-
-/* =========================================================
-   MINES MULTIPLIER UI
-========================================================= */
-
 function updateMinesMultiplier() {
 
     setText(
@@ -843,18 +740,10 @@ function updateMinesMultiplier() {
     );
 }
 
-
-/* =========================================================
-   MINES BUTTONS
-========================================================= */
-
 function updateMinesButtons() {
 
-    const start =
-        $("startMines");
-
-    const cashout =
-        $("cashoutMines");
+    const start = $("startMines");
+    const cashout = $("cashoutMines");
 
     if (start) {
         start.disabled =
@@ -862,20 +751,26 @@ function updateMinesButtons() {
     }
 
     if (cashout) {
+
         cashout.disabled =
             !minesGame.active ||
             minesGame.safeOpened === 0;
 
-        cashout.textContent =
-            minesGame.active
-                ? `Забрать ${Math.floor(
+        if (minesGame.active) {
+
+            cashout.textContent =
+                `Забрать ${Math.floor(
                     minesGame.bet *
                     minesGame.multiplier
-                ).toLocaleString("ru-RU")} ★`
-                : "Забрать";
+                ).toLocaleString("ru-RU")} ★`;
+
+        } else {
+
+            cashout.textContent =
+                "Забрать";
+        }
     }
 }
-
 
 /* =========================================================
    ROCKET
@@ -892,36 +787,11 @@ let rocketGame = {
     crashPoint: 1.5,
 
     startTime: 0,
-    crashTimer: null,
-    animationFrame: null,
+    roundNumber: 0,
 
-    roundNumber: 0
+    countdownTimer: null,
+    animationFrame: null
 };
-
-
-/* =========================================================
-   ROCKET GENERATOR
-========================================================= */
-
-/*
-   ВАЖНО:
-
-   Результат не зависит от ставки игрока.
-
-   Это только виртуальная игра.
-
-   Есть несколько независимых тенденций:
-
-   1. Низкие значения встречаются чаще.
-
-   2. Если подряд были 2–3 значения <= 1.8x,
-      вероятность следующего результата > 2x повышается.
-
-   3. Для больших коэффициентов используются
-      плавающие интервалы.
-
-   Это не жёсткая последовательность.
-*/
 
 let rocketBigCounters = {
     since10: 0,
@@ -938,7 +808,6 @@ function randomFloat(min, max) {
         (max - min);
 }
 
-
 function recentLowStreak() {
 
     const history =
@@ -952,7 +821,7 @@ function recentLowStreak() {
         i--
     ) {
 
-        if (history[i] <= 1.8) {
+        if (Number(history[i]) <= 1.8) {
             streak++;
         } else {
             break;
@@ -962,22 +831,27 @@ function recentLowStreak() {
     return streak;
 }
 
+/*
+   Генерация результата Rocket.
+
+   Важное:
+   результат НЕ зависит от ставки игрока.
+
+   После 2–3 маленьких значений
+   шанс следующего результата выше 2x
+   становится больше.
+
+   Большие коэффициенты имеют
+   плавающие интервалы.
+*/
 
 function generateRocketCrashPoint() {
 
-    /*
-       Точный максимум 340x.
-       Очень редкое событие.
-    */
+    /* Очень редкий максимум */
 
     if (Math.random() < 0.001) {
         return 340;
     }
-
-
-    /*
-       Увеличиваем счётчики.
-    */
 
     rocketBigCounters.since10++;
     rocketBigCounters.since20++;
@@ -985,14 +859,10 @@ function generateRocketCrashPoint() {
     rocketBigCounters.since50++;
     rocketBigCounters.since100++;
 
-
-    /*
-       Если было 2–3 низких раунда,
-       повышаем вероятность >2x.
-    */
-
     const lowStreak =
         recentLowStreak();
+
+    /* После серии маленьких */
 
     if (lowStreak >= 3) {
 
@@ -1016,13 +886,7 @@ function generateRocketCrashPoint() {
         }
     }
 
-
-    /*
-       Большие значения.
-
-       Не каждый ровно N-й раунд,
-       а случайное окно.
-    */
+    /* 100x */
 
     if (
         rocketBigCounters.since100 >=
@@ -1037,6 +901,7 @@ function generateRocketCrashPoint() {
         );
     }
 
+    /* 50x */
 
     if (
         rocketBigCounters.since50 >=
@@ -1051,6 +916,7 @@ function generateRocketCrashPoint() {
         );
     }
 
+    /* 30x */
 
     if (
         rocketBigCounters.since30 >=
@@ -1065,6 +931,7 @@ function generateRocketCrashPoint() {
         );
     }
 
+    /* 20x */
 
     if (
         rocketBigCounters.since20 >=
@@ -1079,6 +946,7 @@ function generateRocketCrashPoint() {
         );
     }
 
+    /* 10x */
 
     if (
         rocketBigCounters.since10 >=
@@ -1093,13 +961,9 @@ function generateRocketCrashPoint() {
         );
     }
 
+    /* Обычное распределение */
 
-    /*
-       Обычное распределение.
-    */
-
-    const roll =
-        Math.random();
+    const roll = Math.random();
 
     if (roll < 0.48) {
 
@@ -1133,4 +997,157 @@ function generateRocketCrashPoint() {
         );
     }
 
-  
+    return Number(
+        randomFloat(10.01, 18.00)
+            .toFixed(2)
+    );
+}
+
+/* =========================================================
+   ROCKET UI
+========================================================= */
+
+function updateRocketMultiplier() {
+
+    setText(
+        "rocketMultiplier",
+        rocketGame.multiplier.toFixed(2) + "x"
+    );
+}
+
+function updateRocketStatus(text) {
+
+    setText(
+        "rocketStatus",
+        text
+    );
+}
+
+function updateRocketButtons() {
+
+    const place =
+        $("placeRocketBet");
+
+    const cashout =
+        $("cashoutRocket");
+
+    if (place) {
+
+        place.disabled =
+            rocketState !== "waiting" ||
+            rocketGame.hasBet;
+    }
+
+    if (cashout) {
+
+        cashout.disabled =
+            rocketState !== "flying" ||
+            !rocketGame.hasBet ||
+            rocketGame.cashedOut;
+
+        if (
+            rocketState === "flying" &&
+            rocketGame.hasBet &&
+            !rocketGame.cashedOut
+        ) {
+
+            cashout.textContent =
+                `Забрать ${Math.floor(
+                    rocketGame.bet *
+                    rocketGame.multiplier
+                ).toLocaleString("ru-RU")} ★`;
+
+        } else {
+
+            cashout.textContent =
+                "Забрать";
+        }
+    }
+}
+
+/* =========================================================
+   ROCKET BET
+========================================================= */
+
+function placeRocketBet() {
+
+    if (rocketState !== "waiting") {
+        toast("Ставки принимаются только до запуска");
+        return;
+    }
+
+    if (rocketGame.hasBet) {
+        return;
+    }
+
+    const bet =
+        getBetInput("rocketBet");
+
+    if (bet < 10) {
+        toast("Минимум 10 ★");
+        return;
+    }
+
+    if (bet > data.balance) {
+        toast("Недостаточно ★");
+        return;
+    }
+
+    if (!removeBalance(bet)) {
+        toast("Не удалось поставить ★");
+        return;
+    }
+
+    rocketGame.bet = bet;
+    rocketGame.hasBet = true;
+    rocketGame.cashedOut = false;
+
+    data.rocketPlayed++;
+
+    updateRocketButtons();
+
+    toast(
+        `Ставка ${bet.toLocaleString("ru-RU")} ★ принята`
+    );
+}
+
+/* =========================================================
+   ROCKET CASHOUT
+========================================================= */
+
+function cashoutRocket() {
+
+    if (rocketState !== "flying") {
+        return;
+    }
+
+    if (!rocketGame.hasBet) {
+        return;
+    }
+
+    if (rocketGame.cashedOut) {
+        return;
+    }
+
+    const result =
+        Math.floor(
+            rocketGame.bet *
+            rocketGame.multiplier
+        );
+
+    rocketGame.cashedOut = true;
+
+    addBalance(result);
+
+    data.rocketWins++;
+
+    data.rocketBest =
+        Math.max(
+            data.rocketBest,
+            rocketGame.multiplier
+        );
+
+    updateRocketButtons();
+
+    toast(
+        `Вы выиграли ${result.to
