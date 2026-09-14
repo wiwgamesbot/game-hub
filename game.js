@@ -1,365 +1,45 @@
 /* =========================================================
-   GAME HUB — GAME LOGIC
-   Версия 1.1
-   Все ★ виртуальные.
+   GAME HUB — COMPLETE GAME.JS
+   Virtual Stars only
 ========================================================= */
 
 "use strict";
 
-/* =========================================================
+/* =========================
    TELEGRAM
-========================================================= */
+========================= */
 
-const tg = window.Telegram?.WebApp;
+const tg = window.Telegram && window.Telegram.WebApp
+    ? window.Telegram.WebApp
+    : null;
 
 if (tg) {
     tg.ready();
     tg.expand();
 }
 
-/* =========================================================
-   STORAGE
-========================================================= */
 
-const STORAGE_KEY = "game_hub_data_v1";
+/* =========================
+   STATE
+========================= */
 
-const defaultData = {
-    balance: 1000,
-    taps: 0,
+const DEFAULT_BALANCE = 1000;
 
-    minesPlayed: 0,
-    minesWins: 0,
-    minesBest: 0,
+let balance = Number(localStorage.getItem("gh_balance"));
 
-    rocketPlayed: 0,
-    rocketWins: 0,
-    rocketBest: 0,
-
-    totalWon: 0,
-    totalLost: 0,
-
-    rocketHistory: [],
-    achievements: []
-};
-
-function loadData() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-
-        if (!saved) {
-            return { ...defaultData };
-        }
-
-        return {
-            ...defaultData,
-            ...JSON.parse(saved)
-        };
-
-    } catch (e) {
-        console.error(e);
-        return { ...defaultData };
-    }
+if (!Number.isFinite(balance)) {
+    balance = DEFAULT_BALANCE;
 }
 
-let data = loadData();
+let taps = Number(localStorage.getItem("gh_taps")) || 0;
+let minesWins = Number(localStorage.getItem("gh_minesWins")) || 0;
+let totalWon = Number(localStorage.getItem("gh_totalWon")) || 0;
+let bestRocket = Number(localStorage.getItem("gh_bestRocket")) || 0;
 
-function saveData() {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(data)
-    );
 
-    updateAllUI();
-}
-
-/* =========================================================
-   TELEGRAM USER
-========================================================= */
-
-function getTelegramUser() {
-
-    const user = tg?.initDataUnsafe?.user;
-
-    if (user) {
-        return {
-            id: user.id,
-            name:
-                user.first_name ||
-                user.username ||
-                "Игрок",
-            username: user.username || ""
-        };
-    }
-
-    return {
-        id: "local",
-        name: "Игрок",
-        username: ""
-    };
-}
-
-const currentUser = getTelegramUser();
-
-/* =========================================================
-   DOM
-========================================================= */
-
-function $(id) {
-    return document.getElementById(id);
-}
-
-function setText(id, value) {
-
-    const element = $(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-}
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-let toastTimer = null;
-
-function toast(message) {
-
-    const element = $("toast");
-
-    if (!element) return;
-
-    element.textContent = message;
-    element.classList.add("show");
-
-    clearTimeout(toastTimer);
-
-    toastTimer = setTimeout(() => {
-        element.classList.remove("show");
-    }, 2200);
-}
-
-/* =========================================================
-   BALANCE
-========================================================= */
-
-function addBalance(amount) {
-
-    amount = Math.floor(Number(amount));
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-        return;
-    }
-
-    data.balance += amount;
-    data.totalWon += amount;
-
-    saveData();
-}
-
-function removeBalance(amount) {
-
-    amount = Math.floor(Number(amount));
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-        return false;
-    }
-
-    if (data.balance < amount) {
-        return false;
-    }
-
-    data.balance -= amount;
-    data.totalLost += amount;
-
-    saveData();
-
-    return true;
-}
-
-/* =========================================================
-   UI
-========================================================= */
-
-function updateAllUI() {
-
-    setText(
-        "balance",
-        Math.floor(data.balance).toLocaleString("ru-RU")
-    );
-
-    setText(
-        "profileBalance",
-        Math.floor(data.balance).toLocaleString("ru-RU")
-    );
-
-    setText(
-        "profileName",
-        currentUser.name
-    );
-
-    setText(
-        "profileTaps",
-        data.taps.toLocaleString("ru-RU")
-    );
-
-    setText(
-        "profileMines",
-        data.minesWins.toLocaleString("ru-RU")
-    );
-
-    setText(
-        "profileRocket",
-        data.rocketBest
-            ? data.rocketBest.toFixed(2) + "x"
-            : "—"
-    );
-
-    setText(
-        "profileTotalWon",
-        data.totalWon.toLocaleString("ru-RU")
-    );
-
-    updateQuickBets();
-    updateLeaderboard();
-}
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function openPage(pageName) {
-
-    document
-        .querySelectorAll(".page")
-        .forEach(page => {
-            page.classList.remove("active");
-        });
-
-    const page = $(`page-${pageName}`);
-
-    if (page) {
-        page.classList.add("active");
-    }
-
-    document
-        .querySelectorAll(".navButton")
-        .forEach(button => {
-            button.classList.remove("active");
-        });
-
-    const nav = $(`nav-${pageName}`);
-
-    if (nav) {
-        nav.classList.add("active");
-    }
-}
-
-function openGame(gameName) {
-
-    if (gameName === "mines") {
-        openPage("mines");
-    }
-
-    if (gameName === "rocket") {
-        openPage("rocket");
-    }
-}
-
-/* =========================================================
-   TAPPER
-========================================================= */
-
-function tapStar() {
-
-    data.taps++;
-    data.balance += 100;
-
-    saveData();
-
-    toast("+100 ★");
-
-    checkAchievements();
-}
-
-/* =========================================================
-   BET INPUT
-========================================================= */
-
-function getBetInput(id) {
-
-    const input = $(id);
-
-    if (!input) {
-        return 0;
-    }
-
-    let value = Math.floor(Number(input.value));
-
-    if (!Number.isFinite(value)) {
-        value = 0;
-    }
-
-    return value;
-}
-
-function setBetInput(id, value) {
-
-    const input = $(id);
-
-    if (!input) return;
-
-    input.value = Math.floor(value);
-}
-
-function setQuickBet(inputId, value) {
-
-    const input = $(inputId);
-
-    if (!input) return;
-
-    if (value === "MAX") {
-        input.value = Math.floor(data.balance);
-    } else {
-        input.value = value;
-    }
-}
-
-function updateQuickBets() {
-
-    const mines = $("maxMines");
-
-    if (mines) {
-        mines.textContent =
-            "MAX " +
-            Math.floor(data.balance)
-                .toLocaleString("ru-RU");
-    }
-
-    const rocket = $("maxRocket");
-
-    if (rocket) {
-        rocket.textContent =
-            "MAX " +
-            Math.floor(data.balance)
-                .toLocaleString("ru-RU");
-    }
-}
-
-/* =========================================================
+/* =========================
    MINES
-========================================================= */
-
-/*
-   Рост коэффициента за каждую безопасную клетку.
-
-   24 мины:
-   1 безопасная клетка = 25x.
-
-   Формула:
-
-   1 + safeOpened * growth
-*/
+========================= */
 
 const MINES_GROWTH = [
     0.10,
@@ -391,353 +71,278 @@ const MINES_GROWTH = [
 let minesGame = {
     active: false,
     bet: 0,
-    mines: 5,
-    cells: [],
-    safeOpened: 0,
+    mineCount: 5,
+    mines: [],
+    opened: [],
     multiplier: 1
 };
 
-function getMinesGrowth(mines) {
 
-    mines = Math.max(
-        1,
-        Math.min(24, Math.floor(mines))
+/* =========================
+   ROCKET
+========================= */
+
+let rocketGame = {
+    active: false,
+    bet: 0,
+    multiplier: 1,
+    crashPoint: 2,
+    round: 0,
+    countdown: 5,
+    timer: null,
+    animation: null
+};
+
+let rocketHistory = [];
+
+
+/* =========================
+   BASIC HELPERS
+========================= */
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+function setText(id, value) {
+    const el = $(id);
+
+    if (el) {
+        el.textContent = value;
+    }
+}
+
+function saveState() {
+    localStorage.setItem("gh_balance", String(balance));
+    localStorage.setItem("gh_taps", String(taps));
+    localStorage.setItem("gh_minesWins", String(minesWins));
+    localStorage.setItem("gh_totalWon", String(totalWon));
+    localStorage.setItem("gh_bestRocket", String(bestRocket));
+}
+
+function addBalance(amount) {
+    balance += Number(amount);
+    balance = Math.max(0, Math.floor(balance));
+    saveState();
+    updateAllUI();
+}
+
+function removeBalance(amount) {
+    amount = Math.floor(Number(amount));
+
+    if (amount <= 0 || amount > balance) {
+        return false;
+    }
+
+    balance -= amount;
+    saveState();
+    updateAllUI();
+
+    return true;
+}
+
+
+/* =========================
+   UI
+========================= */
+
+function updateAllUI() {
+
+    document.querySelectorAll("#balance").forEach(el => {
+        el.textContent = Math.floor(balance);
+    });
+
+    setText("profileBalance", Math.floor(balance));
+    setText("profileTaps", taps);
+    setText("profileMines", minesWins);
+    setText(
+        "profileRocket",
+        bestRocket > 0 ? bestRocket.toFixed(2) + "x" : "—"
     );
+    setText("profileTotalWon", Math.floor(totalWon));
 
-    return MINES_GROWTH[mines - 1];
-}
-
-function getMineMultiplier(mines, safeOpened) {
-
-    if (safeOpened <= 0) {
-        return 1;
+    const maxMines = $("maxMines");
+    if (maxMines) {
+        maxMines.textContent = "MAX " + Math.floor(balance);
     }
 
-    return 1 +
-        safeOpened *
-        getMinesGrowth(mines);
-}
-
-function shuffle(array) {
-
-    for (
-        let i = array.length - 1;
-        i > 0;
-        i--
-    ) {
-
-        const j =
-            Math.floor(Math.random() * (i + 1));
-
-        [
-            array[i],
-            array[j]
-        ] = [
-            array[j],
-            array[i]
-        ];
+    const maxRocket = $("maxRocket");
+    if (maxRocket) {
+        maxRocket.textContent = "MAX " + Math.floor(balance);
     }
 
-    return array;
+    updateMinesButtons();
+    updateRocketButtons();
 }
 
-function createMinesBoard() {
+
+/* =========================
+   PAGES
+========================= */
+
+function openPage(page) {
+
+    document.querySelectorAll(".page").forEach(el => {
+        el.classList.remove("active");
+    });
+
+    const target = $("page-" + page);
+
+    if (target) {
+        target.classList.add("active");
+    }
+
+    document.querySelectorAll(".navButton").forEach(el => {
+        el.classList.remove("active");
+    });
+
+    if (page === "games") {
+        $("nav-games")?.classList.add("active");
+    }
+
+    if (page === "top") {
+        $("nav-top")?.classList.add("active");
+    }
+
+    if (page === "profile") {
+        $("nav-profile")?.classList.add("active");
+    }
+}
+
+function openGame(game) {
+
+    if (game === "mines") {
+        openPage("mines");
+    }
+
+    if (game === "rocket") {
+        openPage("rocket");
+    }
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+let toastTimer = null;
+
+function toast(message) {
+
+    const el = $("toast");
+
+    if (!el) {
+        return;
+    }
+
+    el.textContent = message;
+    el.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+        el.classList.remove("show");
+    }, 1800);
+}
+
+
+/* =========================
+   PROFILE TAPPER
+========================= */
+
+function tapStar() {
+
+    balance += 100;
+    taps++;
+
+    saveState();
+    updateAllUI();
+
+    toast("+100 ★");
+}
+
+
+/* =========================
+   BET INPUTS
+========================= */
+
+function getBetInput(id) {
+
+    const el = $(id);
+
+    if (!el) {
+        return 10;
+    }
+
+    let value = Math.floor(Number(el.value));
+
+    if (!Number.isFinite(value)) {
+        value = 10;
+    }
+
+    value = Math.max(10, value);
+
+    if (value > balance) {
+        value = balance;
+    }
+
+    el.value = value;
+
+    return value;
+}
+
+function setBetInput(id, value) {
+
+    const el = $(id);
+
+    if (!el) {
+        return;
+    }
+
+    if (value === "MAX") {
+        value = Math.floor(balance);
+    }
+
+    value = Math.floor(Number(value));
+
+    if (!Number.isFinite(value)) {
+        value = 10;
+    }
+
+    value = Math.max(10, Math.min(balance, value));
+
+    el.value = value;
+}
+
+function setQuickBet(id, value) {
+    setBetInput(id, value);
+    updateAllUI();
+}
+
+
+/* =========================
+   MINES SETTINGS
+========================= */
+
+function getMinesCount() {
 
     const input = $("mineCount");
 
-    let mineCount =
-        Math.floor(Number(input?.value || 5));
-
-    if (!Number.isFinite(mineCount)) {
-        mineCount = 5;
+    if (!input) {
+        return 5;
     }
 
-    mineCount = Math.max(
-        1,
-        Math.min(24, mineCount)
-    );
+    let value = Math.floor(Number(input.value));
 
-    if (input) {
-        input.value = mineCount;
+    if (!Number.isFinite(value)) {
+        value = 5;
     }
 
-    const positions =
-        Array.from(
-            { length: 25 },
-            (_, i) => i
-        );
+    value = Math.max(1, Math.min(24, value));
 
-    shuffle(positions);
+    input.value = value;
 
-    const minePositions =
-        positions.slice(0, mineCount);
-
-    minesGame.mines = mineCount;
-
-    minesGame.cells =
-        Array.from(
-            { length: 25 },
-            (_, index) => ({
-                index,
-                mine:
-                    minePositions.includes(index),
-                open: false
-            })
-        );
-
-    minesGame.safeOpened = 0;
-    minesGame.multiplier = 1;
-
-    renderMinesBoard();
-    updateMinesMultiplier();
-}
-
-function renderMinesBoard() {
-
-    const board = $("mineBoard");
-
-    if (!board) return;
-
-    board.innerHTML = "";
-
-    minesGame.cells.forEach(cell => {
-
-        const button =
-            document.createElement("button");
-
-        button.className = "mineCell";
-
-        button.dataset.index =
-            cell.index;
-
-        button.textContent = "•";
-
-        button.addEventListener(
-            "click",
-            () => openMineCell(cell.index)
-        );
-
-        board.appendChild(button);
-    });
-}
-
-function startMines() {
-
-    if (minesGame.active) {
-        return;
-    }
-
-    const bet =
-        getBetInput("minesBet");
-
-    if (bet < 10) {
-        toast("Минимум 10 ★");
-        return;
-    }
-
-    if (bet > data.balance) {
-        toast("Недостаточно ★");
-        return;
-    }
-
-    if (!removeBalance(bet)) {
-        toast("Не удалось поставить ★");
-        return;
-    }
-
-    minesGame.active = true;
-    minesGame.bet = bet;
-
-    data.minesPlayed++;
-
-    createMinesBoard();
-
-    updateMinesButtons();
-
-    toast("Игра началась");
-}
-
-function openMineCell(index) {
-
-    if (!minesGame.active) {
-        return;
-    }
-
-    const cell =
-        minesGame.cells[index];
-
-    if (!cell || cell.open) {
-        return;
-    }
-
-    const board = $("mineBoard");
-
-    const button =
-        board?.querySelector(
-            `[data-index="${index}"]`
-        );
-
-    if (!button) return;
-
-    cell.open = true;
-
-    /* МИНА */
-
-    if (cell.mine) {
-
-        button.classList.add(
-            "open",
-            "mine"
-        );
-
-        button.textContent = "💣";
-
-        revealAllMines();
-
-        minesGame.active = false;
-        minesGame.bet = 0;
-        minesGame.multiplier = 1;
-
-        updateMinesButtons();
-        updateMinesMultiplier();
-
-        toast("💥 Мина! Ставка потеряна");
-
-        return;
-    }
-
-    /* БЕЗОПАСНАЯ КЛЕТКА */
-
-    button.classList.add(
-        "open",
-        "safe"
-    );
-
-    button.textContent = "✓";
-
-    minesGame.safeOpened++;
-
-    minesGame.multiplier =
-        getMineMultiplier(
-            minesGame.mines,
-            minesGame.safeOpened
-        );
-
-    updateMinesMultiplier();
-
-    checkMinesWin();
-}
-
-function revealAllMines() {
-
-    const board = $("mineBoard");
-
-    if (!board) return;
-
-    minesGame.cells.forEach(cell => {
-
-        if (!cell.mine) return;
-
-        const button =
-            board.querySelector(
-                `[data-index="${cell.index}"]`
-            );
-
-        if (!button) return;
-
-        button.classList.add(
-            "open",
-            "mine"
-        );
-
-        button.textContent = "💣";
-    });
-}
-
-function cashoutMines() {
-
-    if (!minesGame.active) {
-        return;
-    }
-
-    if (minesGame.safeOpened <= 0) {
-        toast("Открой хотя бы одну клетку");
-        return;
-    }
-
-    const result =
-        Math.floor(
-            minesGame.bet *
-            minesGame.multiplier
-        );
-
-    addBalance(result);
-
-    data.minesWins++;
-
-    data.minesBest =
-        Math.max(
-            data.minesBest,
-            minesGame.multiplier
-        );
-
-    minesGame.active = false;
-    minesGame.bet = 0;
-
-    updateMinesButtons();
-
-    toast(
-        `Вы выиграли ${result.toLocaleString("ru-RU")} ★`
-    );
-
-    saveData();
-}
-
-function checkMinesWin() {
-
-    const safeCells =
-        25 - minesGame.mines;
-
-    if (
-        minesGame.safeOpened >=
-        safeCells
-    ) {
-
-        const result =
-            Math.floor(
-                minesGame.bet *
-                minesGame.multiplier
-            );
-
-        addBalance(result);
-
-        data.minesWins++;
-
-        data.minesBest =
-            Math.max(
-                data.minesBest,
-                minesGame.multiplier
-            );
-
-        minesGame.active = false;
-        minesGame.bet = 0;
-
-        updateMinesButtons();
-
-        toast(
-            `🎉 Поле пройдено! +${result.toLocaleString("ru-RU")} ★`
-        );
-
-        saveData();
-    }
-}
-
-function updateMinesMultiplier() {
-
-    setText(
-        "mineMultiplier",
-        minesGame.multiplier.toFixed(2) + "x"
-    );
+    return value;
 }
 
 function updateMinesButtons() {
@@ -746,82 +351,354 @@ function updateMinesButtons() {
     const cashout = $("cashoutMines");
 
     if (start) {
-        start.disabled =
-            minesGame.active;
+        start.disabled = minesGame.active;
     }
 
     if (cashout) {
-
-        cashout.disabled =
-            !minesGame.active ||
-            minesGame.safeOpened === 0;
-
-        if (minesGame.active) {
-
-            cashout.textContent =
-                `Забрать ${Math.floor(
-                    minesGame.bet *
-                    minesGame.multiplier
-                ).toLocaleString("ru-RU")} ★`;
-
-        } else {
-
-            cashout.textContent =
-                "Забрать";
-        }
+        cashout.disabled = !minesGame.active || minesGame.opened.length === 0;
     }
 }
 
-/* =========================================================
-   ROCKET
-========================================================= */
 
-let rocketState = "waiting";
+/* =========================
+   MINES MULTIPLIER
+========================= */
 
-let rocketGame = {
-    bet: 0,
-    hasBet: false,
-    cashedOut: false,
+function getMinesGrowth() {
 
-    multiplier: 1,
-    crashPoint: 1.5,
+    const count = minesGame.mineCount;
 
-    startTime: 0,
-    roundNumber: 0,
+    return MINES_GROWTH[count - 1] || 0.10;
+}
 
-    countdownTimer: null,
-    animationFrame: null
-};
+function getMineMultiplier(safeOpened) {
 
-let rocketBigCounters = {
-    since10: 0,
-    since20: 0,
-    since30: 0,
-    since50: 0,
-    since100: 0
-};
+    if (safeOpened <= 0) {
+        return 1;
+    }
+
+    const growth = getMinesGrowth();
+
+    return 1 + safeOpened * growth;
+}
+
+function updateMinesMultiplier() {
+
+    const multiplier = getMineMultiplier(minesGame.opened.length);
+
+    minesGame.multiplier = multiplier;
+
+    document.querySelectorAll("#mineMultiplier").forEach(el => {
+        el.textContent = multiplier.toFixed(2) + "x";
+    });
+}
+
+
+/* =========================
+   SHUFFLE
+========================= */
+
+function shuffle(array) {
+
+    for (let i = array.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+
+    return array;
+}
+
+
+/* =========================
+   MINES BOARD
+========================= */
+
+function createMinesBoard() {
+
+    const board = $("mineBoard");
+
+    if (!board) {
+        return;
+    }
+
+    board.innerHTML = "";
+
+    for (let i = 0; i < 25; i++) {
+
+        const cell = document.createElement("button");
+
+        cell.className = "mineCell";
+        cell.dataset.index = String(i);
+
+        cell.addEventListener("click", () => {
+            openMineCell(i);
+        });
+
+        board.appendChild(cell);
+    }
+}
+
+function renderMinesBoard() {
+
+    const board = $("mineBoard");
+
+    if (!board) {
+        return;
+    }
+
+    const cells = board.querySelectorAll(".mineCell");
+
+    cells.forEach((cell, index) => {
+
+        cell.classList.remove("safe", "mine", "opened");
+
+        cell.textContent = "";
+
+        if (minesGame.opened.includes(index)) {
+
+            if (minesGame.mines.includes(index)) {
+                cell.classList.add("mine");
+                cell.textContent = "💣";
+            } else {
+                cell.classList.add("safe");
+                cell.classList.add("opened");
+                cell.textContent = "★";
+            }
+        }
+    });
+}
+
+
+/* =========================
+   START MINES
+========================= */
+
+function startMines() {
+
+    if (minesGame.active) {
+        return;
+    }
+
+    const bet = getBetInput("minesBet");
+    const mineCount = getMinesCount();
+
+    if (bet < 10) {
+        toast("Минимум 10 ★");
+        return;
+    }
+
+    if (bet > balance) {
+        toast("Недостаточно ★");
+        return;
+    }
+
+    if (!removeBalance(bet)) {
+        return;
+    }
+
+    const positions = [];
+
+    for (let i = 0; i < 25; i++) {
+        positions.push(i);
+    }
+
+    shuffle(positions);
+
+    minesGame = {
+        active: true,
+        bet: bet,
+        mineCount: mineCount,
+        mines: positions.slice(0, mineCount),
+        opened: [],
+        multiplier: 1
+    };
+
+    createMinesBoard();
+    renderMinesBoard();
+    updateMinesMultiplier();
+    updateMinesButtons();
+
+    toast("Игра началась!");
+}
+
+
+/* =========================
+   OPEN MINE CELL
+========================= */
+
+function openMineCell(index) {
+
+    if (!minesGame.active) {
+        return;
+    }
+
+    if (minesGame.opened.includes(index)) {
+        return;
+    }
+
+    minesGame.opened.push(index);
+
+    const isMine = minesGame.mines.includes(index);
+
+    if (isMine) {
+
+        revealAllMines();
+
+        minesGame.active = false;
+
+        updateMinesButtons();
+
+        toast("💣 Мина! Ты проиграл.");
+
+        setTimeout(() => {
+            startNewMinesBoard();
+        }, 900);
+
+        return;
+    }
+
+    updateMinesMultiplier();
+    renderMinesBoard();
+
+    const safeTotal = 25 - minesGame.mineCount;
+
+    if (minesGame.opened.length >= safeTotal) {
+        checkMinesWin();
+    }
+}
+
+
+/* =========================
+   REVEAL MINES
+========================= */
+
+function revealAllMines() {
+
+    const board = $("mineBoard");
+
+    if (!board) {
+        return;
+    }
+
+    const cells = board.querySelectorAll(".mineCell");
+
+    cells.forEach((cell, index) => {
+
+        if (minesGame.mines.includes(index)) {
+
+            cell.classList.add("mine");
+            cell.textContent = "💣";
+
+        } else if (minesGame.opened.includes(index)) {
+
+            cell.classList.add("safe", "opened");
+            cell.textContent = "★";
+        }
+    });
+}
+
+
+/* =========================
+   MINES CASHOUT
+========================= */
+
+function cashoutMines() {
+
+    if (!minesGame.active) {
+        return;
+    }
+
+    if (minesGame.opened.length <= 0) {
+        toast("Сначала открой клетку");
+        return;
+    }
+
+    const win = Math.floor(
+        minesGame.bet * minesGame.multiplier
+    );
+
+    minesGame.active = false;
+
+    addBalance(win);
+
+    totalWon += Math.max(0, win - minesGame.bet);
+    minesWins++;
+
+    saveState();
+    updateAllUI();
+
+    revealAllMines();
+    updateMinesButtons();
+
+    toast("+" + win + " ★");
+
+    setTimeout(() => {
+        startNewMinesBoard();
+    }, 900);
+}
+
+function checkMinesWin() {
+
+    if (!minesGame.active) {
+        return;
+    }
+
+    const win = Math.floor(
+        minesGame.bet * minesGame.multiplier
+    );
+
+    minesGame.active = false;
+
+    addBalance(win);
+
+    totalWon += Math.max(0, win - minesGame.bet);
+    minesWins++;
+
+    saveState();
+    updateAllUI();
+
+    revealAllMines();
+    updateMinesButtons();
+
+    toast("Победа! +" + win + " ★");
+}
+
+function startNewMinesBoard() {
+
+    minesGame.active = false;
+
+    createMinesBoard();
+    updateMinesMultiplier();
+    updateMinesButtons();
+}
+
+
+/* =========================
+   ROCKET RANDOM
+========================= */
 
 function randomFloat(min, max) {
-
-    return min +
-        Math.random() *
-        (max - min);
+    return Math.random() * (max - min) + min;
 }
 
 function recentLowStreak() {
 
-    const history =
-        data.rocketHistory || [];
+    const lows = rocketHistory
+        .slice(0, 3)
+        .map(Number)
+        .filter(Number.isFinite);
+
+    if (lows.length < 2) {
+        return 0;
+    }
 
     let streak = 0;
 
-    for (
-        let i = history.length - 1;
-        i >= 0;
-        i--
-    ) {
+    for (const value of lows) {
 
-        if (Number(history[i]) <= 1.8) {
+        if (value <= 1.8) {
             streak++;
         } else {
             break;
@@ -831,181 +708,92 @@ function recentLowStreak() {
     return streak;
 }
 
-/*
-   Генерация результата Rocket.
-
-   Важное:
-   результат НЕ зависит от ставки игрока.
-
-   После 2–3 маленьких значений
-   шанс следующего результата выше 2x
-   становится больше.
-
-   Большие коэффициенты имеют
-   плавающие интервалы.
-*/
-
 function generateRocketCrashPoint() {
 
-    /* Очень редкий максимум */
+    /*
+       0.1% exact 340x.
+       This result does NOT depend on the player's bet.
+    */
 
     if (Math.random() < 0.001) {
-        return 340;
+        return 340.00;
     }
 
-    rocketBigCounters.since10++;
-    rocketBigCounters.since20++;
-    rocketBigCounters.since30++;
-    rocketBigCounters.since50++;
-    rocketBigCounters.since100++;
+    const streak = recentLowStreak();
 
-    const lowStreak =
-        recentLowStreak();
+    /*
+       After several low rounds:
+       increased chance of a bigger round.
+       Not guaranteed.
+    */
 
-    /* После серии маленьких */
-
-    if (lowStreak >= 3) {
-
-        if (Math.random() < 0.72) {
-
-            return Number(
-                randomFloat(2.05, 7.5)
-                    .toFixed(2)
-            );
-        }
-    }
-
-    if (lowStreak === 2) {
-
-        if (Math.random() < 0.58) {
-
-            return Number(
-                randomFloat(2.05, 6.5)
-                    .toFixed(2)
-            );
-        }
-    }
-
-    /* 100x */
-
-    if (
-        rocketBigCounters.since100 >=
-        Math.floor(randomFloat(145, 210))
-    ) {
-
-        rocketBigCounters.since100 = 0;
+    if (streak >= 3 && Math.random() < 0.45) {
 
         return Number(
-            randomFloat(100, 180)
-                .toFixed(2)
+            randomFloat(2.01, 6.50).toFixed(2)
         );
     }
-
-    /* 50x */
-
-    if (
-        rocketBigCounters.since50 >=
-        Math.floor(randomFloat(90, 125))
-    ) {
-
-        rocketBigCounters.since50 = 0;
-
-        return Number(
-            randomFloat(50, 95)
-                .toFixed(2)
-        );
-    }
-
-    /* 30x */
-
-    if (
-        rocketBigCounters.since30 >=
-        Math.floor(randomFloat(58, 82))
-    ) {
-
-        rocketBigCounters.since30 = 0;
-
-        return Number(
-            randomFloat(30, 65)
-                .toFixed(2)
-        );
-    }
-
-    /* 20x */
-
-    if (
-        rocketBigCounters.since20 >=
-        Math.floor(randomFloat(37, 53))
-    ) {
-
-        rocketBigCounters.since20 = 0;
-
-        return Number(
-            randomFloat(20, 42)
-                .toFixed(2)
-        );
-    }
-
-    /* 10x */
-
-    if (
-        rocketBigCounters.since10 >=
-        Math.floor(randomFloat(17, 26))
-    ) {
-
-        rocketBigCounters.since10 = 0;
-
-        return Number(
-            randomFloat(10, 19)
-                .toFixed(2)
-        );
-    }
-
-    /* Обычное распределение */
 
     const roll = Math.random();
 
-    if (roll < 0.48) {
+    if (roll < 0.55) {
 
         return Number(
-            randomFloat(1.01, 1.80)
-                .toFixed(2)
+            randomFloat(1.01, 1.80).toFixed(2)
         );
     }
 
-    if (roll < 0.76) {
+    if (roll < 0.82) {
 
         return Number(
-            randomFloat(1.81, 2.80)
-                .toFixed(2)
+            randomFloat(1.81, 3.50).toFixed(2)
         );
     }
 
-    if (roll < 0.91) {
+    if (roll < 0.94) {
 
         return Number(
-            randomFloat(2.81, 5.00)
-                .toFixed(2)
+            randomFloat(3.51, 7.50).toFixed(2)
         );
     }
 
     if (roll < 0.975) {
 
         return Number(
-            randomFloat(5.01, 10.00)
-                .toFixed(2)
+            randomFloat(7.51, 10.00).toFixed(2)
+        );
+    }
+
+    if (roll < 0.99) {
+
+        return Number(
+            randomFloat(10.01, 18.00).toFixed(2)
+        );
+    }
+
+    if (roll < 0.997) {
+
+        return Number(
+            randomFloat(18.01, 35.00).toFixed(2)
+        );
+    }
+
+    if (roll < 0.999) {
+
+        return Number(
+            randomFloat(35.01, 100.00).toFixed(2)
         );
     }
 
     return Number(
-        randomFloat(10.01, 18.00)
-            .toFixed(2)
+        randomFloat(100.01, 200.00).toFixed(2)
     );
 }
 
-/* =========================================================
+
+/* =========================
    ROCKET UI
-========================================================= */
+========================= */
 
 function updateRocketMultiplier() {
 
@@ -1015,669 +803,451 @@ function updateRocketMultiplier() {
     );
 }
 
-function updateRocketStatus(text) {
+function updateRocketStatus(text, className) {
 
-    setText(
-        "rocketStatus",
-        text
+    const el = $("rocketStatus");
+
+    if (!el) {
+        return;
+    }
+
+    el.textContent = text;
+
+    el.classList.remove(
+        "rocketCrash",
+        "rocketFlying"
     );
+
+    if (className) {
+        el.classList.add(className);
+    }
 }
 
 function updateRocketButtons() {
 
-    const place =
-        $("placeRocketBet");
+    const betButton = $("placeRocketBet");
+    const cashoutButton = $("cashoutRocket");
 
-    const cashout =
-        $("cashoutRocket");
-
-    if (place) {
-
-        place.disabled =
-            rocketState !== "waiting" ||
-            rocketGame.hasBet;
+    if (betButton) {
+        betButton.disabled =
+            rocketGame.bet > 0 ||
+            rocketGame.active;
     }
 
-    if (cashout) {
-
-        cashout.disabled =
-            rocketState !== "flying" ||
-            !rocketGame.hasBet ||
-            rocketGame.cashedOut;
-
-        if (
-            rocketState === "flying" &&
-            rocketGame.hasBet &&
-            !rocketGame.cashedOut
-        ) {
-
-            cashout.textContent =
-                `Забрать ${Math.floor(
-                    rocketGame.bet *
-                    rocketGame.multiplier
-                ).toLocaleString("ru-RU")} ★`;
-
-        } else {
-
-            cashout.textContent =
-                "Забрать";
-        }
+    if (cashoutButton) {
+        cashoutButton.disabled =
+            !rocketGame.active ||
+            rocketGame.bet <= 0;
     }
 }
 
-/* =========================================================
-   ROCKET BET
-========================================================= */
+
+/* =========================
+   PLACE ROCKET BET
+========================= */
 
 function placeRocketBet() {
 
-    if (rocketState !== "waiting") {
-        toast("Ставки принимаются только до запуска");
+    if (rocketGame.bet > 0) {
+        toast("Ставка уже сделана");
         return;
     }
 
-    if (rocketGame.hasBet) {
+    if (rocketGame.active) {
+        toast("Раунд уже идёт");
         return;
     }
 
-    const bet =
-        getBetInput("rocketBet");
+    const bet = getBetInput("rocketBet");
 
     if (bet < 10) {
         toast("Минимум 10 ★");
         return;
     }
 
-    if (bet > data.balance) {
+    if (bet > balance) {
         toast("Недостаточно ★");
         return;
     }
 
     if (!removeBalance(bet)) {
-        toast("Не удалось поставить ★");
         return;
     }
 
     rocketGame.bet = bet;
-    rocketGame.hasBet = true;
-    rocketGame.cashedOut = false;
-
-    data.rocketPlayed++;
 
     updateRocketButtons();
 
-    toast(
-        `Ставка ${bet.toLocaleString("ru-RU")} ★ принята`
-    );
+    toast("Ставка " + bet + " ★");
 }
 
-/* =========================================================
+
+/* =========================
    ROCKET CASHOUT
-========================================================= */
+========================= */
 
 function cashoutRocket() {
 
-    if (rocketState !== "flying") {
+    if (!rocketGame.active) {
         return;
     }
 
-    if (!rocketGame.hasBet) {
+    if (rocketGame.bet <= 0) {
         return;
     }
 
-    if (rocketGame.cashedOut) {
-        return;
+    const win = Math.floor(
+        rocketGame.bet * rocketGame.multiplier
+    );
+
+    addBalance(win);
+
+    totalWon += Math.max(
+        0,
+        win - rocketGame.bet
+    );
+
+    if (rocketGame.multiplier > bestRocket) {
+        bestRocket = rocketGame.multiplier;
     }
 
-    const result =
-        Math.floor(
-            rocketGame.bet *
-            rocketGame.multiplier
-        );
+    saveState();
 
-    rocketGame.cashedOut = true;
+    rocketGame.bet = 0;
 
-    addBalance(result);
-
-    data.rocketWins++;
-
-    data.rocketBest =
-        Math.max(
-            data.rocketBest,
-            rocketGame.multiplier
-        );
-
+    updateAllUI();
     updateRocketButtons();
 
-    toast(
-        `Вы выиграли ${result.to
-                           return Number(
-        randomFloat(10.01, 18.00)
-            .toFixed(2)
-    );
+    toast("Забрано +" + win + " ★");
 }
 
 
-/* =========================================================
-   ROCKET UI
-========================================================= */
-
-function updateRocketMultiplier() {
-
-    setText(
-        "rocketMultiplier",
-        rocketGame.multiplier.toFixed(2) + "x"
-    );
-}
-
-
-function updateRocketStatus(text) {
-
-    setText(
-        "rocketStatus",
-        text
-    );
-}
-
-
-function updateRocketButtons() {
-
-    const place =
-        $("placeRocketBet");
-
-    const cashout =
-        $("cashoutRocket");
-
-    if (place) {
-
-        place.disabled =
-            rocketState !== "waiting" ||
-            rocketGame.hasBet;
-    }
-
-    if (cashout) {
-
-        cashout.disabled =
-            rocketState !== "flying" ||
-            !rocketGame.hasBet ||
-            rocketGame.cashedOut;
-
-        if (
-            rocketState === "flying" &&
-            rocketGame.hasBet &&
-            !rocketGame.cashedOut
-        ) {
-
-            cashout.textContent =
-                `Забрать ${Math.floor(
-                    rocketGame.bet *
-                    rocketGame.multiplier
-                ).toLocaleString("ru-RU")} ★`;
-
-        } else {
-
-            cashout.textContent = "Забрать";
-        }
-    }
-}
-
-
-/* =========================================================
-   ROCKET BET
-========================================================= */
-
-function placeRocketBet() {
-
-    if (rocketState !== "waiting") {
-        toast("Ставки принимаются только до запуска");
-        return;
-    }
-
-    if (rocketGame.hasBet) {
-        return;
-    }
-
-    const bet =
-        getBetInput("rocketBet");
-
-    if (bet < 10) {
-        toast("Минимум 10 ★");
-        return;
-    }
-
-    if (bet > data.balance) {
-        toast("Недостаточно ★");
-        return;
-    }
-
-    if (!removeBalance(bet)) {
-        toast("Не удалось поставить ★");
-        return;
-    }
-
-    rocketGame.bet = bet;
-    rocketGame.hasBet = true;
-    rocketGame.cashedOut = false;
-
-    data.rocketPlayed += 1;
-
-    updateRocketButtons();
-
-    toast(
-        `Ставка ${bet.toLocaleString("ru-RU")} ★ принята`
-    );
-}
-
-
-/* =========================================================
-   ROCKET CASHOUT
-========================================================= */
-
-function cashoutRocket() {
-
-    if (rocketState !== "flying") {
-        return;
-    }
-
-    if (!rocketGame.hasBet) {
-        return;
-    }
-
-    if (rocketGame.cashedOut) {
-        return;
-    }
-
-    const result =
-        Math.floor(
-            rocketGame.bet *
-            rocketGame.multiplier
-        );
-
-    rocketGame.cashedOut = true;
-
-    addBalance(result);
-
-    data.rocketWins += 1;
-
-    data.rocketBest =
-        Math.max(
-            data.rocketBest,
-            rocketGame.multiplier
-        );
-
-    updateRocketButtons();
-
-    toast(
-        `Вы выиграли ${result.toLocaleString("ru-RU")} ★`
-    );
-
-    saveData();
-}
-
-
-/* =========================================================
+/* =========================
    ROCKET HISTORY
-========================================================= */
+========================= */
 
 function addRocketHistory(value) {
 
-    if (!Array.isArray(data.rocketHistory)) {
-        data.rocketHistory = [];
-    }
+    rocketHistory.unshift(value);
 
-    data.rocketHistory.push(value);
-
-    if (data.rocketHistory.length > 30) {
-        data.rocketHistory.shift();
+    if (rocketHistory.length > 15) {
+        rocketHistory.length = 15;
     }
 
     renderRocketHistory();
-
-    saveData();
 }
-
 
 function renderRocketHistory() {
 
-    const element =
-        $("rocketHistory");
+    const container = $("rocketHistory");
 
-    if (!element) {
+    if (!container) {
         return;
     }
 
-    element.innerHTML = "";
+    container.innerHTML = "";
 
-    const history =
-        data.rocketHistory || [];
+    rocketHistory.forEach(value => {
 
-    history
-        .slice(-12)
-        .reverse()
-        .forEach(value => {
+        const item = document.createElement("div");
 
-            const item =
-                document.createElement("div");
+        item.className = "historyItem";
 
-            item.className =
-                "historyItem";
+        if (value < 1.8) {
+            item.classList.add("low");
+        } else if (value < 5) {
+            item.classList.add("medium");
+        } else {
+            item.classList.add("high");
+        }
 
-            item.textContent =
-                Number(value).toFixed(2) + "x";
+        item.textContent = value.toFixed(2) + "x";
 
-            element.appendChild(item);
-        });
+        container.appendChild(item);
+    });
 }
 
 
-/* =========================================================
+/* =========================
    ROCKET VISUAL
-========================================================= */
+========================= */
 
 function resetRocketVisual() {
 
-    const ship =
-        $("rocketShip");
-
-    const trail =
-        $("rocketTrail");
+    const ship = $("rocketShip");
+    const trail = $("rocketTrail");
 
     if (ship) {
-
-        ship.style.left = "8%";
-        ship.style.bottom = "10%";
-
-        ship.style.transform =
-            "translate(-50%, 50%) rotate(-25deg)";
+        ship.style.left = "28px";
+        ship.style.bottom = "30px";
+        ship.classList.remove("flying");
     }
 
     if (trail) {
-        trail.style.width = "0%";
+        trail.style.width = "180px";
     }
 }
 
+function animateRocket() {
 
-function animateRocket(timestamp) {
+    const ship = $("rocketShip");
+    const trail = $("rocketTrail");
 
-    if (rocketState !== "flying") {
+    if (!ship) {
         return;
     }
 
-    const elapsed =
-        timestamp - rocketGame.startTime;
+    const start = performance.now();
 
-    const seconds =
-        elapsed / 1000;
+    function frame(now) {
 
-    const progress =
-        Math.min(
-            0.96,
-            seconds / 12
+        if (!rocketGame.active) {
+            return;
+        }
+
+        const elapsed = (now - start) / 1000;
+
+        rocketGame.multiplier = Math.max(
+            1,
+            Math.pow(1.12, elapsed * 4)
         );
 
-    rocketGame.multiplier =
-        Math.min(
-            rocketGame.crashPoint,
+        if (
+            rocketGame.multiplier >=
+            rocketGame.crashPoint
+        ) {
+            rocketGame.multiplier =
+                rocketGame.crashPoint;
 
-            Number(
-                (
-                    1 +
-                    (rocketGame.crashPoint - 1) *
-                    progress
-                ).toFixed(2)
-            )
+            updateRocketMultiplier();
+            crashRocket();
+
+            return;
+        }
+
+        updateRocketMultiplier();
+
+        const progress = Math.min(
+            1,
+            rocketGame.multiplier /
+            Math.max(rocketGame.crashPoint, 2)
         );
 
-    updateRocketMultiplier();
-    updateRocketButtons();
+        const left = 28 + progress * 250;
+        const bottom = 30 + progress * 170;
 
-    const ship =
-        $("rocketShip");
+        ship.style.left = left + "px";
+        ship.style.bottom = bottom + "px";
 
-    const trail =
-        $("rocketTrail");
+        if (trail) {
+            trail.style.width =
+                (180 + progress * 120) + "px";
+        }
 
-    if (ship) {
-
-        const x =
-            8 + progress * 78;
-
-        const y =
-            10 + progress * 72;
-
-        ship.style.left = `${x}%`;
-        ship.style.bottom = `${y}%`;
-
-        ship.style.transform =
-            "translate(-50%, 50%) rotate(-25deg)";
+        rocketGame.animation =
+            requestAnimationFrame(frame);
     }
 
-    if (trail) {
-        trail.style.width =
-            `${progress * 82}%`;
-    }
+    ship.classList.add("flying");
 
-    if (
-        rocketGame.multiplier >=
-        rocketGame.crashPoint
-    ) {
-
-        crashRocket();
-
-        return;
-    }
-
-    rocketGame.animationFrame =
-        requestAnimationFrame(
-            animateRocket
-        );
+    rocketGame.animation =
+        requestAnimationFrame(frame);
 }
 
 
-/* =========================================================
-   ROCKET START
-========================================================= */
+/* =========================
+   ROCKET ROUND
+========================= */
 
 function startRocketRound() {
 
-    clearTimeout(
-        rocketGame.crashTimer
-    );
-
-    rocketState = "flying";
-
-    rocketGame.roundNumber += 1;
-
-    rocketGame.multiplier = 1;
-
-    rocketGame.crashPoint =
-        generateRocketCrashPoint();
-
-    rocketGame.startTime =
-        performance.now();
-
-    resetRocketVisual();
-
-    updateRocketMultiplier();
-
-    updateRocketStatus("🚀 Летим!");
-
-    updateRocketButtons();
-
-    rocketGame.animationFrame =
-        requestAnimationFrame(
-            animateRocket
-        );
-}
-
-
-/* =========================================================
-   ROCKET COUNTDOWN
-========================================================= */
-
-function startRocketCountdown() {
-
-    rocketState = "waiting";
-
-    rocketGame.multiplier = 1;
-
-    resetRocketVisual();
-
-    updateRocketMultiplier();
-
-    let seconds = 5;
-
-    updateRocketStatus(
-        `Следующий запуск через ${seconds}`
-    );
-
-    updateRocketButtons();
-
-    const tick = () => {
-
-        if (rocketState !== "waiting") {
-            return;
-        }
-
-        seconds -= 1;
-
-        if (seconds <= 0) {
-
-            startRocketRound();
-
-            return;
-        }
-
-        updateRocketStatus(
-            `Следующий запуск через ${seconds}`
-        );
-
-        rocketGame.crashTimer =
-            setTimeout(
-                tick,
-                1000
-            );
-    };
-
-    rocketGame.crashTimer =
-        setTimeout(
-            tick,
-            1000
-        );
-}
-
-
-/* =========================================================
-   ROCKET CRASH
-========================================================= */
-
-function crashRocket() {
-
-    if (rocketState !== "flying") {
+    if (rocketGame.active) {
         return;
     }
 
-    cancelAnimationFrame(
-        rocketGame.animationFrame
-    );
+    rocketGame.round++;
 
-    rocketState = "crashed";
+    rocketGame.active = true;
+    rocketGame.multiplier = 1;
+    rocketGame.crashPoint =
+        generateRocketCrashPoint();
 
-    rocketGame.multiplier =
-        rocketGame.crashPoint;
+    resetRocketVisual();
 
     updateRocketMultiplier();
 
     updateRocketStatus(
-        `💥 Краш на ${rocketGame.crashPoint.toFixed(2)}x`
+        "Полет!",
+        "rocketFlying"
     );
 
-    addRocketHistory(
-        rocketGame.crashPoint
+    updateRocketButtons();
+
+    animateRocket();
+}
+
+function startRocketCountdown() {
+
+    clearInterval(rocketGame.timer);
+
+    if (rocketGame.active) {
+        return;
+    }
+
+    rocketGame.countdown = 5;
+
+    updateRocketStatus(
+        "Старт через " +
+        rocketGame.countdown
     );
 
-    if (
-        rocketGame.hasBet &&
-        !rocketGame.cashedOut
-    ) {
+    rocketGame.timer = setInterval(() => {
 
-        toast(
-            `💥 Ракета упала на ${rocketGame.crashPoint.toFixed(2)}x`
+        if (rocketGame.active) {
+            clearInterval(rocketGame.timer);
+            return;
+        }
+
+        rocketGame.countdown--;
+
+        if (rocketGame.countdown <= 0) {
+
+            clearInterval(rocketGame.timer);
+
+            startRocketRound();
+
+        } else {
+
+            updateRocketStatus(
+                "Старт через " +
+                rocketGame.countdown
+            );
+        }
+
+    }, 1000);
+}
+
+
+/* =========================
+   ROCKET CRASH
+========================= */
+
+function crashRocket() {
+
+    if (!rocketGame.active) {
+        return;
+    }
+
+    rocketGame.active = false;
+
+    if (rocketGame.animation) {
+        cancelAnimationFrame(
+            rocketGame.animation
         );
     }
 
-    rocketGame.bet = 0;
-    rocketGame.hasBet = false;
-    rocketGame.cashedOut = false;
+    const result = rocketGame.crashPoint;
 
+    rocketGame.multiplier = result;
+
+    updateRocketMultiplier();
+
+    updateRocketStatus(
+        "💥 Упала на " +
+        result.toFixed(2) +
+        "x",
+        "rocketCrash"
+    );
+
+    addRocketHistory(result);
+
+    /*
+       If the player still has a bet,
+       it is lost because they did not cash out.
+    */
+
+    rocketGame.bet = 0;
+
+    updateAllUI();
     updateRocketButtons();
 
     setTimeout(() => {
 
+        resetRocketVisual();
+
         startRocketCountdown();
 
-    }, 2000);
+    }, 1800);
 }
 
 
-/* =========================================================
+/* =========================
    LEADERBOARD
-========================================================= */
+========================= */
 
 function updateLeaderboard() {
 
-    const element =
-        $("leaderboard");
+    const board = $("leaderboard");
 
-    if (!element) {
+    if (!board) {
         return;
     }
 
-    element.innerHTML = "";
+    const name =
+        tg &&
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+            ? (
+                tg.initDataUnsafe.user.first_name ||
+                "Игрок"
+            )
+            : "Игрок";
 
-    const row =
-        document.createElement("div");
+    const players = [
+        {
+            name: "🚀 RocketMaster",
+            score: 15420
+        },
+        {
+            name: "💎 StarKing",
+            score: 12100
+        },
+        {
+            name: "🔥 PlayerOne",
+            score: 9800
+        },
+        {
+            name: name,
+            score: Math.floor(balance)
+        }
+    ];
 
-    row.className =
-        "leaderboardRow";
+    players.sort(
+        (a, b) => b.score - a.score
+    );
 
-    row.innerHTML = `
-        <div class="leaderPlace">
-            1
-        </div>
+    board.innerHTML = "";
 
-        <div class="leaderInfo">
+    players.forEach((player, index) => {
 
-            <div class="leaderName">
-                ${escapeHtml(currentUser.name)}
-            </div>
+        const row = document.createElement("div");
 
-            <div class="leaderStats">
-                🚀 ${Number(data.rocketBest || 0).toFixed(2)}x
-                · 💣 ${Number(data.minesBest || 0).toFixed(2)}x
-            </div>
+        row.className = "leaderRow";
 
-        </div>
+        row.innerHTML =
+            "<div class='leaderPlace'>" +
+            (index + 1) +
+            "</div>" +
+            "<div class='leaderName'>" +
+            escapeHtml(player.name) +
+            "</div>" +
+            "<div class='leaderScore'>" +
+            player.score +
+            " ★</div>";
 
-        <div class="leaderBalance">
-            ★ ${Math.floor(data.balance).toLocaleString("ru-RU")}
-        </div>
-    `;
-
-    element.appendChild(row);
-
-    const note =
-        document.createElement("div");
-
-    note.className =
-        "leaderboardEmpty";
-
-    note.textContent =
-        "Онлайн-топ появится после подключения сервера.";
-
-    element.appendChild(note);
+        board.appendChild(row);
+    });
 }
-
 
 function escapeHtml(value) {
 
@@ -1690,104 +1260,37 @@ function escapeHtml(value) {
 }
 
 
-/* =========================================================
-   ACHIEVEMENTS
-========================================================= */
+/* =========================
+   PROFILE
+========================= */
 
-function checkAchievements() {
+function updateProfile() {
 
-    if (!Array.isArray(data.achievements)) {
-        data.achievements = [];
+    let name = "Игрок";
+
+    if (
+        tg &&
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+    ) {
+        name =
+            tg.initDataUnsafe.user.first_name ||
+            "Игрок";
     }
 
-    const achievements = [];
+    setText("profileName", name);
 
-    if (data.taps >= 10) {
-        achievements.push("10_taps");
-    }
-
-    if (data.taps >= 100) {
-        achievements.push("100_taps");
-    }
-
-    if (data.minesWins >= 5) {
-        achievements.push("5_mines");
-    }
-
-    if (data.rocketWins >= 5) {
-        achievements.push("5_rocket");
-    }
-
-    achievements.forEach(id => {
-
-        if (!data.achievements.includes(id)) {
-
-            data.achievements.push(id);
-
-            const messages = {
-                "10_taps":
-                    "🏆 10 нажатий!",
-                "100_taps":
-                    "🏆 100 нажатий!",
-                "5_mines":
-                    "🏆 5 побед в Минах!",
-                "5_rocket":
-                    "🏆 5 побед в Rocket!"
-            };
-
-            if (messages[id]) {
-                toast(messages[id]);
-            }
-        }
-    });
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(data)
-    );
+    updateAllUI();
 }
 
 
-/* =========================================================
+/* =========================
    INPUTS
-========================================================= */
+========================= */
 
 function setupInputs() {
 
-    const inputs = [
-        $("minesBet"),
-        $("rocketBet")
-    ];
-
-    inputs.forEach(input => {
-
-        if (!input) {
-            return;
-        }
-
-        input.addEventListener(
-            "input",
-            () => {
-
-                let value =
-                    Math.floor(
-                        Number(input.value)
-                    );
-
-                if (
-                    !Number.isFinite(value) ||
-                    value < 0
-                ) {
-
-                    input.value = "";
-                }
-            }
-        );
-    });
-
-
-    const mineCount =
-        $("mineCount");
+    const mineCount = $("mineCount");
 
     if (mineCount) {
 
@@ -1800,9 +1303,7 @@ function setupInputs() {
                         Number(mineCount.value)
                     );
 
-                if (
-                    !Number.isFinite(value)
-                ) {
+                if (!Number.isFinite(value)) {
                     value = 5;
                 }
 
@@ -1813,15 +1314,44 @@ function setupInputs() {
                     );
 
                 mineCount.value = value;
+
+                if (!minesGame.active) {
+                    minesGame.mineCount =
+                        value;
+
+                    updateMinesMultiplier();
+                }
             }
+        );
+    }
+
+
+    const minesBet = $("minesBet");
+
+    if (minesBet) {
+
+        minesBet.addEventListener(
+            "change",
+            () => getBetInput("minesBet")
+        );
+    }
+
+
+    const rocketBet = $("rocketBet");
+
+    if (rocketBet) {
+
+        rocketBet.addEventListener(
+            "change",
+            () => getBetInput("rocketBet")
         );
     }
 }
 
 
-/* =========================================================
+/* =========================
    INIT
-========================================================= */
+========================= */
 
 function initGame() {
 
@@ -1829,19 +1359,29 @@ function initGame() {
 
     createMinesBoard();
 
-    updateMinesButtons();
-
     updateMinesMultiplier();
 
     renderRocketHistory();
 
-    updateAllUI();
+    updateProfile();
+
+    updateLeaderboard();
 
     resetRocketVisual();
 
-    checkAchievements();
+    updateAllUI();
 
-    startRocketCountdown();
+    updateRocketStatus(
+        "Подготовка..."
+    );
+
+    /*
+       Start Rocket countdown automatically.
+    */
+
+    setTimeout(() => {
+        startRocketCountdown();
+    }, 800);
 
     console.log(
         "GAME HUB initialized successfully"
@@ -1849,9 +1389,9 @@ function initGame() {
 }
 
 
-/* =========================================================
+/* =========================
    START
-========================================================= */
+========================= */
 
 if (
     document.readyState ===
@@ -1866,5 +1406,4 @@ if (
 } else {
 
     initGame();
-       }
-                       
+}
