@@ -1048,7 +1048,9 @@ function animateRocket() {
         const bottom =
             30 + progress * (maxBottom - 30);
 
-        ship.style.left =
+       ship.style.transform = "rotate(-45deg)";
+       
+       ship.style.left =
             left + "px";
 
         ship.style.bottom =
