@@ -982,7 +982,7 @@ function animateRocket() {
        if (ship && !ship.dataset.neonRocket) {
         ship.dataset.neonRocket = "1";
 
-   
+   ship.innerHTML = `
 <svg
     viewBox="0 0 120 80"
     width="100"
