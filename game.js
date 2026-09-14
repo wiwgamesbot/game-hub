@@ -991,14 +991,21 @@ function animateRocket() {
         return;
     }
 
-    const start = performance.now();
+    let elapsed = 0;
+let lastTime = performance.now();
 
     function frame(now) {
         if (!rocketGame.active) {
             return;
         }
 
-        const elapsed = (now - start) / 1000;
+        const delta = Math.min(
+    (now - lastTime) / 1000,
+    0.05
+);
+
+lastTime = now;
+elapsed += delta;
 
         // Плавный равномерный рост коэффициента
         rocketGame.multiplier = 1 + elapsed * 0.65;
