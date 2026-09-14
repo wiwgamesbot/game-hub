@@ -1834,7 +1834,7 @@ input::-webkit-outer-spin-button {
             rgba(80, 113, 255, .8)
         );
 
-    transform: rotate(-25deg);
+    transform: rotate(-12deg);
 
     transform-origin: left;
 }
