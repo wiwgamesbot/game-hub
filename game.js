@@ -1256,6 +1256,7 @@ function animateRocket() {
         opacity="0.7"
     />
 </svg>
+`;
 
         ship.style.width = "100px";
 ship.style.height = "68px";
