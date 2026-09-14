@@ -1073,7 +1073,7 @@ function animateRocket() {
         ship.style.width = "100px";
 ship.style.height = "68px";
 ship.style.fontSize = "0";
-ship.style.setProperty("transform", "rotate(0deg)", "important");
+ship.style.setProperty("transform", "rotate(-45deg)", "important");
 ship.style.animation = "none";
        }
     const trail = $("rocketTrail");
