@@ -9,12 +9,12 @@
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     >
 
-    <title>GAME HUB</title>
+    <meta name="theme-color" content="#050914">
 
-    <!-- Telegram Mini App -->
+    <title>WIW GAMES</title>
+
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
-    <!-- Стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -23,80 +23,644 @@
 <div class="app">
 
     <!-- =====================================================
-         ИГРЫ
+         GAMES
     ====================================================== -->
 
     <section id="page-games" class="page active">
 
-        <div class="header">
+        <div class="homeHeader">
 
-            <div>
-                <div class="header-title">
-                    GAME HUB
+            <div class="brand">
+
+                <div class="brandLogo">
+                    <svg viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="crownGradient"
+                                x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7c5cff"/>
+                                <stop offset="1" stop-color="#20d9ff"/>
+                            </linearGradient>
+                        </defs>
+
+                        <path
+                            d="M15 28L31 42L50 15L69 42L85 28L79 72H21Z"
+                            fill="url(#crownGradient)"
+                        />
+
+                        <circle cx="31" cy="42" r="5" fill="#fff"/>
+                        <circle cx="50" cy="15" r="5" fill="#fff"/>
+                        <circle cx="69" cy="42" r="5" fill="#fff"/>
+
+                        <path
+                            d="M25 76H75"
+                            stroke="#fff"
+                            stroke-width="5"
+                            stroke-linecap="round"
+                        />
+                    </svg>
                 </div>
 
-                <div class="header-subtitle">
-                    Играй и соревнуйся
+                <div>
+                    <div class="brandTitle">
+                        WIW <span>GAMES</span>
+                    </div>
+
+                    <div class="brandSubtitle">
+                        Играй и побеждай
+                    </div>
                 </div>
+
             </div>
 
-            <div class="balance">
-                <span class="star">★</span>
+
+            <div class="balancePill">
+
+                <div class="balanceStar">
+                    <svg viewBox="0 0 100 100">
+                        <path
+                            d="M50 7L61 37L94 38L68 57L77 89L50 71L23 89L32 57L6 38L39 37Z"
+                            fill="#ffd84d"
+                        />
+                    </svg>
+                </div>
+
                 <span id="balance">1000</span>
+
+                <div class="balancePlus">
+                    +
+                </div>
+
             </div>
 
         </div>
 
 
-        <!-- МИНЫ -->
+        <div class="sectionHeading">
 
-        <div
-            class="game-card"
-            onclick="openGame('mines')"
-        >
+            <div class="sectionHeadingLeft">
 
-            <div class="game-icon">
-                💣
+                <div class="headingIcon">
+                    <svg viewBox="0 0 100 100">
+                        <rect x="12" y="32" width="76" height="38" rx="18"
+                              fill="#6e5cff"/>
+                        <circle cx="33" cy="51" r="7" fill="#fff"/>
+                        <circle cx="67" cy="45" r="5" fill="#fff"/>
+                        <circle cx="78" cy="55" r="5" fill="#fff"/>
+                        <path
+                            d="M25 51H41M33 43V59"
+                            stroke="#fff"
+                            stroke-width="5"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </div>
+
+                <h1>Игры</h1>
+
             </div>
 
-            <h2>
-                Мины
-            </h2>
+            <span class="sectionHint">
+                Выбери свою игру
+            </span>
 
-            <p>
-                Открывай безопасные клетки,
-                увеличивай коэффициент и забирай ★
-            </p>
+        </div>
 
-            <div class="game-arrow">
+
+        <!-- GAME CARDS -->
+
+        <div class="gamesGrid">
+
+            <!-- MINES -->
+
+            <button
+                class="gameCard minesCard"
+                onclick="openGame('mines')"
+            >
+
+                <div class="cardArt minesArt">
+
+                    <div class="mineGlow"></div>
+
+                    <div class="mineGridVisual">
+
+                        <i></i>
+                        <i></i>
+                        <i class="active"></i>
+                        <i></i>
+                        <i></i>
+
+                        <i></i>
+                        <i class="active"></i>
+                        <i></i>
+                        <i></i>
+                        <i class="active"></i>
+
+                        <i class="active"></i>
+                        <i></i>
+                        <i></i>
+                        <i class="active"></i>
+                        <i></i>
+
+                    </div>
+
+                    <div class="bombGraphic">
+
+                        <svg viewBox="0 0 200 200">
+
+                            <defs>
+                                <radialGradient id="bombGradient">
+                                    <stop offset="0" stop-color="#26324d"/>
+                                    <stop offset="1" stop-color="#070b17"/>
+                                </radialGradient>
+
+                                <filter id="bombGlow">
+                                    <feGaussianBlur stdDeviation="5"/>
+                                </filter>
+                            </defs>
+
+                            <circle
+                                cx="100"
+                                cy="105"
+                                r="55"
+                                fill="#17e4c3"
+                                opacity=".25"
+                                filter="url(#bombGlow)"
+                            />
+
+                            <path
+                                d="M100 50C75 50 55 70 55 100C55 130 75 150 100 150C130 150 150 130 150 100C150 70 130 50 100 50Z"
+                                fill="url(#bombGradient)"
+                                stroke="#19d9c2"
+                                stroke-width="4"
+                            />
+
+                            <path
+                                d="M100 52C100 35 111 27 126 25"
+                                fill="none"
+                                stroke="#ffae3d"
+                                stroke-width="7"
+                                stroke-linecap="round"
+                            />
+
+                            <path
+                                d="M126 25C138 19 143 30 136 39"
+                                fill="none"
+                                stroke="#ffae3d"
+                                stroke-width="6"
+                                stroke-linecap="round"
+                            />
+
+                            <circle
+                                cx="82"
+                                cy="83"
+                                r="9"
+                                fill="#43516e"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                </div>
+
+
+                <div class="gameCardContent">
+
+                    <div class="gameCardTitle">
+                        МИНЫ
+                    </div>
+
+                    <div class="gameCardDescription">
+                        Найди безопасные клетки
+                        и увеличь множитель
+                    </div>
+
+                    <div class="gameCardBottom">
+
+                        <span>
+                            5×5 поле
+                        </span>
+
+                        <div class="roundArrow">
+                            →
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </button>
+
+
+            <!-- ROCKET -->
+
+            <button
+                class="gameCard rocketCard"
+                onclick="openGame('rocket')"
+            >
+
+                <div class="cardArt rocketArt">
+
+                    <div class="starsBackground">
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                    </div>
+
+                    <div class="rocketGraphic">
+
+                        <svg viewBox="0 0 260 260">
+
+                            <defs>
+
+                                <linearGradient
+                                    id="rocketBody"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0"
+                                        stop-color="#ffffff"
+                                    />
+
+                                    <stop
+                                        offset="1"
+                                        stop-color="#d6d9ff"
+                                    />
+                                </linearGradient>
+
+                                <linearGradient
+                                    id="rocketWindow"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0"
+                                        stop-color="#20d9ff"
+                                    />
+
+                                    <stop
+                                        offset="1"
+                                        stop-color="#654cff"
+                                    />
+                                </linearGradient>
+
+                                <linearGradient
+                                    id="rocketFire"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0"
+                                        stop-color="#ffe55c"
+                                    />
+
+                                    <stop
+                                        offset=".5"
+                                        stop-color="#ff8a3d"
+                                    />
+
+                                    <stop
+                                        offset="1"
+                                        stop-color="#ff35b8"
+                                    />
+                                </linearGradient>
+
+                            </defs>
+
+
+                            <path
+                                d="M87 188C58 205 50 230 49 243C66 237 91 223 105 196Z"
+                                fill="url(#rocketFire)"
+                            />
+
+                            <path
+                                d="M119 193C112 219 113 237 120 248C132 231 139 211 136 188Z"
+                                fill="#ffdf4d"
+                            />
+
+
+                            <path
+                                d="M83 181C65 150 68 105 93 72C113 45 142 26 178 17C187 53 180 87 163 116C142 151 113 177 83 181Z"
+                                fill="url(#rocketBody)"
+                            />
+
+
+                            <circle
+                                cx="137"
+                                cy="85"
+                                r="28"
+                                fill="url(#rocketWindow)"
+                                stroke="#fff"
+                                stroke-width="6"
+                            />
+
+                            <circle
+                                cx="130"
+                                cy="77"
+                                r="7"
+                                fill="#fff"
+                                opacity=".7"
+                            />
+
+
+                            <path
+                                d="M82 181L49 187L62 153L91 159Z"
+                                fill="#754fff"
+                            />
+
+                            <path
+                                d="M163 116L183 135L151 142L146 126Z"
+                                fill="#754fff"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                    <div class="rocketMultiplierDecor">
+                        ×3.45
+                    </div>
+
+                    <div class="rocketMultiplierDecor second">
+                        ×7.21
+                    </div>
+
+                </div>
+
+
+                <div class="gameCardContent">
+
+                    <div class="gameCardTitle">
+                        РАКЕТА
+                    </div>
+
+                    <div class="gameCardDescription">
+                        Улетай вовремя
+                        и забирай свои звёзды
+                    </div>
+
+                    <div class="gameCardBottom">
+
+                        <span>
+                            До 340x
+                        </span>
+
+                        <div class="roundArrow purple">
+                            →
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </button>
+
+        </div>
+
+
+        <!-- PLINKO -->
+
+        <div class="plinkoCard">
+
+            <div class="plinkoText">
+
+                <div class="soonBadge">
+                    СКОРО
+                </div>
+
+                <h2>
+                    ПЛИНКО
+                </h2>
+
+                <p>
+                    Падай, набирай, выигрывай ★
+                </p>
+
+            </div>
+
+
+            <div class="plinkoVisual">
+
+                <div class="plinkoTriangle">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                    <span></span>
+                    <span></span>
+
+                    <span></span>
+
+                </div>
+
+            </div>
+
+
+            <div class="plinkoArrow">
                 →
             </div>
 
         </div>
 
 
-        <!-- ROCKET -->
+        <!-- MINI TOP -->
 
-        <div
-            class="game-card"
-            onclick="openGame('rocket')"
-        >
+        <div class="topPreview">
 
-            <div class="game-icon">
-                🚀
+            <div class="topPreviewHeader">
+
+                <div class="topTitle">
+
+                    <div class="trophyIcon">
+
+                        <svg viewBox="0 0 100 100">
+
+                            <path
+                                d="M25 18H75V42C75 62 65 72 50 72C35 72 25 62 25 42Z"
+                                fill="#ffd34d"
+                            />
+
+                            <path
+                                d="M25 28H12C12 50 20 58 33 58"
+                                fill="none"
+                                stroke="#ffd34d"
+                                stroke-width="8"
+                            />
+
+                            <path
+                                d="M75 28H88C88 50 80 58 67 58"
+                                fill="none"
+                                stroke="#ffd34d"
+                                stroke-width="8"
+                            />
+
+                            <path
+                                d="M50 72V87"
+                                stroke="#ffd34d"
+                                stroke-width="8"
+                            />
+
+                            <path
+                                d="M32 88H68"
+                                stroke="#ffd34d"
+                                stroke-width="8"
+                                stroke-linecap="round"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                    <span>
+                        Топ игроков
+                    </span>
+
+                </div>
+
+                <button
+                    class="viewAllButton"
+                    onclick="openPage('top')"
+                >
+                    Лучшие за всё время →
+                </button>
+
             </div>
 
-            <h2>
-                Ракета
-            </h2>
 
-            <p>
-                Следи за коэффициентом
-                и забирай ★ вовремя
-            </p>
+            <div class="miniPodium">
 
-            <div class="game-arrow">
-                →
+                <div class="miniPlayer second">
+
+                    <div class="miniAvatar avatarBlue">
+                        S
+                    </div>
+
+                    <div class="placeBadge">
+                        2
+                    </div>
+
+                    <div class="miniPlayerName">
+                        Shadow
+                    </div>
+
+                    <div class="miniScore">
+                        ★ 12 430
+                    </div>
+
+                </div>
+
+
+                <div class="miniPlayer first">
+
+                    <div class="miniAvatar avatarGold">
+                        R
+                    </div>
+
+                    <div class="placeBadge">
+                        1
+                    </div>
+
+                    <div class="miniPlayerName">
+                        RocketMaster
+                    </div>
+
+                    <div class="miniScore">
+                        ★ 18 920
+                    </div>
+
+                </div>
+
+
+                <div class="miniPlayer third">
+
+                    <div class="miniAvatar avatarPink">
+                        S
+                    </div>
+
+                    <div class="placeBadge">
+                        3
+                    </div>
+
+                    <div class="miniPlayerName">
+                        StarKing
+                    </div>
+
+                    <div class="miniScore">
+                        ★ 9 850
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROFILE PREVIEW -->
+
+        <div class="profilePreview">
+
+            <div class="profilePreviewAvatar">
+                W
+            </div>
+
+            <div class="profilePreviewName">
+
+                <strong id="homeProfileName">
+                    Wiw
+                </strong>
+
+                <span>
+                    Игрок
+                </span>
+
+            </div>
+
+            <div class="profilePreviewStats">
+
+                <div>
+                    <strong id="homeBalance">
+                        1000
+                    </strong>
+                    <span>Баланс</span>
+                </div>
+
+                <div>
+                    <strong id="homeTaps">
+                        0
+                    </strong>
+                    <span>Нажатий</span>
+                </div>
+
+                <div>
+                    <strong id="homeWins">
+                        0
+                    </strong>
+                    <span>Побед</span>
+                </div>
+
             </div>
 
         </div>
@@ -105,46 +669,61 @@
 
 
     <!-- =====================================================
-         МИНЫ
+         MINES
     ====================================================== -->
 
     <section id="page-mines" class="page">
 
-        <div class="header">
+        <div class="innerHeader">
+
+            <button
+                class="backButton"
+                onclick="openPage('games')"
+            >
+                ←
+            </button>
 
             <div>
-                <div class="header-title">
-                    💣 Мины
+
+                <div class="innerTitle">
+                    МИНЫ
                 </div>
 
-                <div class="header-subtitle">
+                <div class="innerSubtitle">
                     Найди безопасные клетки
                 </div>
+
             </div>
 
-            <div class="balance">
-                <span class="star">★</span>
-                <span id="balance">1000</span>
+
+            <div class="smallBalance">
+
+                <span class="smallStar">
+                    ★
+                </span>
+
+                <span id="balance">
+                    1000
+                </span>
+
             </div>
 
         </div>
 
 
-        <div class="card">
+        <div class="gamePanel minesPanel">
 
-            <!-- Настройки -->
+            <div class="panelTop">
 
-            <div class="minesSettings">
+                <div class="controlBox">
 
-                <div class="setting">
-
-                    <span class="settingLabel">
+                    <span>
                         МИН
                     </span>
 
                     <input
                         id="mineCount"
-                        class="betInput"
+                               class="modernInput"
                         type="number"
                         min="1"
                         max="24"
@@ -155,89 +734,72 @@
                 </div>
 
 
-                <div class="setting">
+                <div class="controlBox">
 
-                    <span class="settingLabel">
+                    <span>
                         КОЭФФИЦИЕНТ
                     </span>
 
-                    <div class="settingValue">
-                        <span id="mineMultiplier">
-                            1.00x
-                        </span>
-                    </div>
+                    <strong id="mineMultiplier">
+                        1.00x
+                    </strong>
 
                 </div>
 
             </div>
 
 
-            <!-- Игровое поле -->
-
-            <div
-                id="mineBoard"
-                class="mineBoard"
-            ></div>
+            <div id="mineBoard" class="mineBoard"></div>
 
 
-            <!-- Текущий коэффициент -->
+            <div class="currentMultiplier">
 
-            <div class="mineMultiplier">
-
-                <span id="mineMultiplier">
+                <strong id="mineMultiplier">
                     1.00x
+                </strong>
+
+                <span>
+                    текущий коэффициент
                 </span>
 
             </div>
 
-            <div class="mineMultiplierLabel">
-                текущий коэффициент
-            </div>
 
+            <div class="betBox">
 
-            <!-- Ставка -->
-
-            <div
-                class="betBox"
-                style="margin-top:16px;"
-            >
-
-                <div class="betLabel">
+                <label>
                     Сколько поставить?
-                </div>
-
+                </label>
 
                 <input
                     id="minesBet"
-                    class="betInput"
+                    class="bigInput"
                     type="number"
                     min="10"
                     step="1"
                     value="10"
                     inputmode="numeric"
-                    placeholder="Введите количество ★"
                 >
-
 
                 <div class="quickBets">
 
                     <button
                         class="quickBet"
-                        onclick="setQuickBet('minesBet', 10)"
+                        onclick="setQuickBet('minesBet',10)"
                     >
                         10
                     </button>
 
                     <button
                         class="quickBet"
-                        onclick="setQuickBet('minesBet', 50)"
+                        onclick="setQuickBet('minesBet',50)"
                     >
                         50
                     </button>
 
                     <button
                         class="quickBet"
-                        onclick="setQuickBet('minesBet', 100)"
+                        onclick="setQuickBet('minesBet',100)"
                     >
                         100
                     </button>
@@ -245,7 +807,7 @@
                     <button
                         id="maxMines"
                         class="quickBet"
-                        onclick="setQuickBet('minesBet', 'MAX')"
+                        onclick="setQuickBet('minesBet','MAX')"
                     >
                         MAX 1000
                     </button>
@@ -255,7 +817,7 @@
 
                 <button
                     id="startMines"
-                    class="mainButton"
+                    class="primaryButton"
                     onclick="startMines()"
                 >
                     Начать игру
@@ -264,7 +826,7 @@
 
                 <button
                     id="cashoutMines"
-                    class="mainButton cashoutButton"
+                    class="cashoutButton"
                     onclick="cashoutMines()"
                     disabled
                 >
@@ -275,15 +837,6 @@
 
         </div>
 
-
-        <button
-            class="mainButton"
-            onclick="openPage('games')"
-            style="background:#1b1e2a;"
-        >
-            ← Назад
-        </button>
-
     </section>
 
 
@@ -293,27 +846,42 @@
 
     <section id="page-rocket" class="page">
 
-        <div class="header">
+        <div class="innerHeader">
+
+            <button
+                class="backButton"
+                onclick="openPage('games')"
+            >
+                ←
+            </button>
 
             <div>
-                <div class="header-title">
-                    🚀 Ракета
+
+                <div class="innerTitle">
+                    РАКЕТА
                 </div>
 
-                <div class="header-subtitle">
+                <div class="innerSubtitle">
                     Забери ★ до падения
                 </div>
+
             </div>
 
-            <div class="balance">
-                <span class="star">★</span>
-                <span id="balance">1000</span>
+
+            <div class="smallBalance">
+
+                <span class="smallStar">
+                    ★
+                </span>
+
+                <span id="balance">
+                    1000
+                </span>
+
             </div>
 
         </div>
 
-
-        <!-- РАКЕТА -->
 
         <div class="rocketGameCard">
 
@@ -326,11 +894,72 @@
                     class="rocketTrail"
                 ></div>
 
+
                 <div
                     id="rocketShip"
                     class="rocketShip"
                 >
-                    🚀
+
+                    <svg viewBox="0 0 100 100">
+
+                        <defs>
+
+                            <linearGradient
+                                id="shipGradient"
+                                x1="0"
+                                y1="0"
+                                x2="1"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="0"
+                                    stop-color="#ffffff"
+                                />
+
+                                <stop
+                                    offset="1"
+                                    stop-color="#a8a9ff"
+                                />
+                            </linearGradient>
+
+                        </defs>
+
+                        <path
+                            d="M20 82C18 70 25 57 37 47C47 38 61 25 81 19C84 39 78 57 65 70C52 83 37 89 20 82Z"
+                            fill="url(#shipGradient)"
+                        />
+
+                        <circle
+                            cx="58"
+                            cy="45"
+                            r="11"
+                            fill="#21d9ff"
+                            stroke="#654cff"
+                            stroke-width="4"
+                        />
+
+                        <path
+                            d="M31 70L13 87L39 80"
+                            fill="#704fff"
+                        />
+
+                        <path
+                            d="M66 68L83 86L77 61"
+                            fill="#704fff"
+                        />
+
+                        <path
+                            d="M20 83C8 91 9 98 5 100C19 99 31 93 37 83Z"
+                            fill="#ff8b3d"
+                        />
+
+                        <path
+                            d="M29 87C20 96 22 100 22 100C32 96 39 91 43 84Z"
+                            fill="#ffe24e"
+                        />
+
+                    </svg>
+
                 </div>
 
 
@@ -352,8 +981,6 @@
             </div>
 
 
-            <!-- История коэффициентов -->
-
             <div
                 id="rocketHistory"
                 class="history"
@@ -362,49 +989,41 @@
         </div>
 
 
-        <!-- СТАВКА -->
+        <div class="betBox">
 
-        <div
-            class="betBox"
-            style="margin-top:14px;"
-        >
-
-            <div class="betLabel">
+            <label>
                 Ставка ★
-            </div>
-
+            </label>
 
             <input
                 id="rocketBet"
-                class="betInput"
+                class="bigInput"
                 type="number"
                 min="10"
                 step="1"
                 value="10"
                 inputmode="numeric"
-                placeholder="Введите количество ★"
             >
-
 
             <div class="quickBets">
 
                 <button
                     class="quickBet"
-                    onclick="setQuickBet('rocketBet', 10)"
+                    onclick="setQuickBet('rocketBet',10)"
                 >
                     10
                 </button>
 
                 <button
                     class="quickBet"
-                    onclick="setQuickBet('rocketBet', 50)"
+                    onclick="setQuickBet('rocketBet',50)"
                 >
                     50
                 </button>
 
                 <button
                     class="quickBet"
-                    onclick="setQuickBet('rocketBet', 100)"
+                    onclick="setQuickBet('rocketBet',100)"
                 >
                     100
                 </button>
@@ -412,7 +1031,7 @@
                 <button
                     id="maxRocket"
                     class="quickBet"
-                    onclick="setQuickBet('rocketBet', 'MAX')"
+                    onclick="setQuickBet('rocketBet','MAX')"
                 >
                     MAX 1000
                 </button>
@@ -422,7 +1041,7 @@
 
             <button
                 id="placeRocketBet"
-                class="mainButton"
+                class="primaryButton"
                 onclick="placeRocketBet()"
             >
                 Поставить ★
@@ -431,7 +1050,7 @@
 
             <button
                 id="cashoutRocket"
-                class="mainButton cashoutButton"
+                class="cashoutButton"
                 onclick="cashoutRocket()"
                 disabled
             >
@@ -440,73 +1059,125 @@
 
         </div>
 
-
-        <button
-            class="mainButton"
-            onclick="openPage('games')"
-            style="background:#1b1e2a;"
-        >
-            ← Назад
-        </button>
-
     </section>
 
 
     <!-- =====================================================
-         ТОП
+         TOP
     ====================================================== -->
 
     <section id="page-top" class="page">
 
-        <div class="header">
+        <div class="innerHeader">
 
-            <div>
-                <div class="header-title">
-                    🏆 Топ
+            <div class="topPageTitle">
+
+                <div class="trophyBig">
+
+                    <svg viewBox="0 0 100 100">
+
+                        <path
+                            d="M25 18H75V42C75 62 65 72 50 72C35 72 25 62 25 42Z"
+                            fill="#ffd34d"
+                        />
+
+                        <path
+                            d="M25 28H12C12 50 20 58 33 58"
+                            fill="none"
+                            stroke="#ffd34d"
+                            stroke-width="8"
+                        />
+
+                        <path
+                            d="M75 28H88C88 50 80 58 67 58"
+                            fill="none"
+                            stroke="#ffd34d"
+                            stroke-width="8"
+                        />
+
+                        <path
+                            d="M50 72V87"
+                            stroke="#ffd34d"
+                            stroke-width="8"
+                        />
+
+                        <path
+                            d="M32 88H68"
+                            stroke="#ffd34d"
+                            stroke-width="8"
+                            stroke-linecap="round"
+                        />
+
+                    </svg>
+
                 </div>
 
-                <div class="header-subtitle">
-                    Лучшие игроки
+                <div>
+
+                    <div class="innerTitle">
+                        Топ игроков
+                    </div>
+
+                    <div class="innerSubtitle">
+                        Лучшие за всё время
+                    </div>
+
                 </div>
+
             </div>
 
-            <div class="balance">
-                <span class="star">★</span>
-                <span id="balance">1000</span>
+
+            <div class="smallBalance">
+
+                <span class="smallStar">
+                    ★
+                </span>
+
+                <span id="balance">
+                    1000
+                </span>
+
             </div>
 
         </div>
 
 
-        <div
-            id="leaderboard"
-            class="leaderboard"
-        ></div>
+        <div id="leaderboard" class="leaderboard"></div>
 
     </section>
 
 
     <!-- =====================================================
-         ПРОФИЛЬ
+         PROFILE
     ====================================================== -->
 
     <section id="page-profile" class="page">
 
-        <div class="header">
+        <div class="innerHeader">
 
             <div>
-                <div class="header-title">
-                    👤 Профиль
+
+                <div class="innerTitle">
+                    Профиль
                 </div>
 
-                <div class="header-subtitle">
+                <div class="innerSubtitle">
                     Твоя статистика
                 </div>
+
             </div>
 
-            <div class="balance">
-                <span class="star">★</span>
-                <span id="balance">1000</span>
+
+            <div class="smallBalance">
+
+                <span class="smallStar">
+                    ★
+                </span>
+
+                <span id="balance">
+                    1000
+                </span>
+
             </div>
 
         </div>
@@ -514,14 +1185,10 @@
 
         <div class="profileHero">
 
-            <!-- Аватар -->
-
-            <div class="profileAvatar">
-                👤
+            <div class="bigProfileAvatar">
+                W
             </div>
 
-
-            <!-- Имя -->
 
             <div
                 id="profileName"
@@ -532,112 +1199,98 @@
 
 
             <div class="profileId">
-                GAME HUB
+                WIW GAMES PLAYER
             </div>
 
-
-            <!-- Статистика -->
 
             <div class="statsGrid">
 
                 <div class="statCard">
 
-                    <div
-                        id="profileBalance"
-                        class="statNumber"
-                    >
+                    <strong id="profileBalance">
                         1000
-                    </div>
+                    </strong>
 
-                    <div class="statLabel">
+                    <span>
                         Баланс ★
-                    </div>
+                    </span>
 
                 </div>
 
 
                 <div class="statCard">
 
-                    <div
-                        id="profileTaps"
-                        class="statNumber"
-                    >
+                    <strong id="profileTaps">
                         0
-                    </div>
+                    </strong>
 
-                    <div class="statLabel">
+                    <span>
                         Нажатий
-                    </div>
+                    </span>
 
                 </div>
 
 
                 <div class="statCard">
 
-                    <div
-                        id="profileMines"
-                        class="statNumber"
-                    >
+                    <strong id="profileMines">
                         0
-                    </div>
+                    </strong>
 
-                    <div class="statLabel">
+                    <span>
                         Побед в минах
-                    </div>
+                    </span>
 
                 </div>
 
 
                 <div class="statCard">
 
-                    <div
-                        id="profileRocket"
-                        class="statNumber"
-                    >
+                    <strong id="profileRocket">
                         —
-                    </div>
+                    </strong>
 
-                    <div class="statLabel">
+                    <span>
                         Лучший Rocket
-                    </div>
+                    </span>
 
                 </div>
 
 
-                <div
-                    class="statCard"
-                    style="grid-column:1/-1;"
-                >
+                <div class="statCard wide">
 
-                    <div
-                        id="profileTotalWon"
-                        class="statNumber"
-                    >
+                    <strong id="profileTotalWon">
                         0
-                    </div>
+                    </strong>
 
-                    <div class="statLabel">
+                    <span>
                         Всего выиграно ★
-                    </div>
+                    </span>
 
                 </div>
 
             </div>
 
 
-            <!-- ТАПЕР -->
-
             <button
                 class="tapperButton"
                 onclick="tapStar()"
-                title="Получить +100 ★"
             >
-                ★
+
+                <svg viewBox="0 0 100 100">
+
+                    <path
+                        d="M50 7L61 37L94 38L68 57L77 89L50 71L23 89L32 57L6 38L39 37Z"
+                        fill="#ffd84d"
+                    />
+
+                </svg>
+
             </button>
 
 
-            <div class="card-text">
-                Нажми на ★ и получи +100 виртуальных очков
+            <div class="tapHint">
+                Нажми на звезду и получи +100 виртуальных очков
             </div>
 
         </div>
@@ -646,7 +1299,7 @@
 
 
     <!-- =====================================================
-         НИЖНЕЕ МЕНЮ
+         BOTTOM NAV
     ====================================================== -->
 
     <nav class="bottomNav">
@@ -657,11 +1310,50 @@
             onclick="openPage('games')"
         >
 
-            <span class="navIcon">
-                🎮
-            </span>
+            <svg viewBox="0 0 100 100">
 
-            Игры
+                <rect
+                    x="12"
+                    y="30"
+                    width="76"
+                    height="42"
+                    rx="20"
+                    fill="currentColor"
+                />
+
+                <circle
+                    cx="33"
+                    cy="51"
+                    r="7"
+                    fill="#07101f"
+                />
+
+                <path
+                    d="M33 42V60M24 51H42"
+                    stroke="#07101f"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                />
+
+                <circle
+                    cx="68"
+                    cy="45"
+                    r="5"
+                    fill="#07101f"
+                />
+
+                <circle
+                    cx="78"
+                    cy="55"
+                    r="5"
+                    fill="#07101f"
+                />
+
+            </svg>
+
+            <span>
+                Игры
+            </span>
 
         </button>
 
@@ -672,11 +1364,45 @@
             onclick="openPage('top')"
         >
 
-            <span class="navIcon">
-                🏆
-            </span>
+            <svg viewBox="0 0 100 100">
 
-            Топ
+                <path
+                    d="M25 18H75V42C75 62 65 72 50 72C35 72 25 62 25 42Z"
+                    fill="currentColor"
+                />
+
+                <path
+                    d="M25 28H12C12 50 20 58 33 58"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="8"
+                />
+
+                <path
+                    d="M75 28H88C88 50 80 58 67 58"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="8"
+                />
+
+                <path
+                    d="M50 72V87"
+                    stroke="currentColor"
+                    stroke-width="8"
+                />
+
+                <path
+                    d="M32 88H68"
+                    stroke="currentColor"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                />
+
+            </svg>
+
+            <span>
+                Топ
+            </span>
 
         </button>
 
@@ -687,20 +1413,30 @@
             onclick="openPage('profile')"
         >
 
-            <span class="navIcon">
-                👤
-            </span>
+            <svg viewBox="0 0 100 100">
 
-            Профиль
+                <circle
+                    cx="50"
+                    cy="34"
+                    r="20"
+                    fill="currentColor"
+                />
+
+                <path
+                    d="M18 88C20 66 33 55 50 55C67 55 80 66 82 88Z"
+                    fill="currentColor"
+                />
+
+            </svg>
+
+            <span>
+                Профиль
+            </span>
 
         </button>
 
     </nav>
 
-
-    <!-- =====================================================
-         УВЕДОМЛЕНИЯ
-    ====================================================== -->
 
     <div
         id="toast"
@@ -709,10 +1445,6 @@
 
 </div>
 
-
-<!-- =====================================================
-     GAME.JS
-====================================================== -->
 
 <script src="game.js"></script>
 
