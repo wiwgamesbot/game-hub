@@ -1151,3 +1151,720 @@ function cashoutRocket() {
 
     toast(
         `Вы выиграли ${result.to
+                           return Number(
+        randomFloat(10.01, 18.00)
+            .toFixed(2)
+    );
+}
+
+
+/* =========================================================
+   ROCKET UI
+========================================================= */
+
+function updateRocketMultiplier() {
+
+    setText(
+        "rocketMultiplier",
+        rocketGame.multiplier.toFixed(2) + "x"
+    );
+}
+
+
+function updateRocketStatus(text) {
+
+    setText(
+        "rocketStatus",
+        text
+    );
+}
+
+
+function updateRocketButtons() {
+
+    const place =
+        $("placeRocketBet");
+
+    const cashout =
+        $("cashoutRocket");
+
+    if (place) {
+
+        place.disabled =
+            rocketState !== "waiting" ||
+            rocketGame.hasBet;
+    }
+
+    if (cashout) {
+
+        cashout.disabled =
+            rocketState !== "flying" ||
+            !rocketGame.hasBet ||
+            rocketGame.cashedOut;
+
+        if (
+            rocketState === "flying" &&
+            rocketGame.hasBet &&
+            !rocketGame.cashedOut
+        ) {
+
+            cashout.textContent =
+                `Забрать ${Math.floor(
+                    rocketGame.bet *
+                    rocketGame.multiplier
+                ).toLocaleString("ru-RU")} ★`;
+
+        } else {
+
+            cashout.textContent = "Забрать";
+        }
+    }
+}
+
+
+/* =========================================================
+   ROCKET BET
+========================================================= */
+
+function placeRocketBet() {
+
+    if (rocketState !== "waiting") {
+        toast("Ставки принимаются только до запуска");
+        return;
+    }
+
+    if (rocketGame.hasBet) {
+        return;
+    }
+
+    const bet =
+        getBetInput("rocketBet");
+
+    if (bet < 10) {
+        toast("Минимум 10 ★");
+        return;
+    }
+
+    if (bet > data.balance) {
+        toast("Недостаточно ★");
+        return;
+    }
+
+    if (!removeBalance(bet)) {
+        toast("Не удалось поставить ★");
+        return;
+    }
+
+    rocketGame.bet = bet;
+    rocketGame.hasBet = true;
+    rocketGame.cashedOut = false;
+
+    data.rocketPlayed += 1;
+
+    updateRocketButtons();
+
+    toast(
+        `Ставка ${bet.toLocaleString("ru-RU")} ★ принята`
+    );
+}
+
+
+/* =========================================================
+   ROCKET CASHOUT
+========================================================= */
+
+function cashoutRocket() {
+
+    if (rocketState !== "flying") {
+        return;
+    }
+
+    if (!rocketGame.hasBet) {
+        return;
+    }
+
+    if (rocketGame.cashedOut) {
+        return;
+    }
+
+    const result =
+        Math.floor(
+            rocketGame.bet *
+            rocketGame.multiplier
+        );
+
+    rocketGame.cashedOut = true;
+
+    addBalance(result);
+
+    data.rocketWins += 1;
+
+    data.rocketBest =
+        Math.max(
+            data.rocketBest,
+            rocketGame.multiplier
+        );
+
+    updateRocketButtons();
+
+    toast(
+        `Вы выиграли ${result.toLocaleString("ru-RU")} ★`
+    );
+
+    saveData();
+}
+
+
+/* =========================================================
+   ROCKET HISTORY
+========================================================= */
+
+function addRocketHistory(value) {
+
+    if (!Array.isArray(data.rocketHistory)) {
+        data.rocketHistory = [];
+    }
+
+    data.rocketHistory.push(value);
+
+    if (data.rocketHistory.length > 30) {
+        data.rocketHistory.shift();
+    }
+
+    renderRocketHistory();
+
+    saveData();
+}
+
+
+function renderRocketHistory() {
+
+    const element =
+        $("rocketHistory");
+
+    if (!element) {
+        return;
+    }
+
+    element.innerHTML = "";
+
+    const history =
+        data.rocketHistory || [];
+
+    history
+        .slice(-12)
+        .reverse()
+        .forEach(value => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "historyItem";
+
+            item.textContent =
+                Number(value).toFixed(2) + "x";
+
+            element.appendChild(item);
+        });
+}
+
+
+/* =========================================================
+   ROCKET VISUAL
+========================================================= */
+
+function resetRocketVisual() {
+
+    const ship =
+        $("rocketShip");
+
+    const trail =
+        $("rocketTrail");
+
+    if (ship) {
+
+        ship.style.left = "8%";
+        ship.style.bottom = "10%";
+
+        ship.style.transform =
+            "translate(-50%, 50%) rotate(-25deg)";
+    }
+
+    if (trail) {
+        trail.style.width = "0%";
+    }
+}
+
+
+function animateRocket(timestamp) {
+
+    if (rocketState !== "flying") {
+        return;
+    }
+
+    const elapsed =
+        timestamp - rocketGame.startTime;
+
+    const seconds =
+        elapsed / 1000;
+
+    const progress =
+        Math.min(
+            0.96,
+            seconds / 12
+        );
+
+    rocketGame.multiplier =
+        Math.min(
+            rocketGame.crashPoint,
+
+            Number(
+                (
+                    1 +
+                    (rocketGame.crashPoint - 1) *
+                    progress
+                ).toFixed(2)
+            )
+        );
+
+    updateRocketMultiplier();
+    updateRocketButtons();
+
+    const ship =
+        $("rocketShip");
+
+    const trail =
+        $("rocketTrail");
+
+    if (ship) {
+
+        const x =
+            8 + progress * 78;
+
+        const y =
+            10 + progress * 72;
+
+        ship.style.left = `${x}%`;
+        ship.style.bottom = `${y}%`;
+
+        ship.style.transform =
+            "translate(-50%, 50%) rotate(-25deg)";
+    }
+
+    if (trail) {
+        trail.style.width =
+            `${progress * 82}%`;
+    }
+
+    if (
+        rocketGame.multiplier >=
+        rocketGame.crashPoint
+    ) {
+
+        crashRocket();
+
+        return;
+    }
+
+    rocketGame.animationFrame =
+        requestAnimationFrame(
+            animateRocket
+        );
+}
+
+
+/* =========================================================
+   ROCKET START
+========================================================= */
+
+function startRocketRound() {
+
+    clearTimeout(
+        rocketGame.crashTimer
+    );
+
+    rocketState = "flying";
+
+    rocketGame.roundNumber += 1;
+
+    rocketGame.multiplier = 1;
+
+    rocketGame.crashPoint =
+        generateRocketCrashPoint();
+
+    rocketGame.startTime =
+        performance.now();
+
+    resetRocketVisual();
+
+    updateRocketMultiplier();
+
+    updateRocketStatus("🚀 Летим!");
+
+    updateRocketButtons();
+
+    rocketGame.animationFrame =
+        requestAnimationFrame(
+            animateRocket
+        );
+}
+
+
+/* =========================================================
+   ROCKET COUNTDOWN
+========================================================= */
+
+function startRocketCountdown() {
+
+    rocketState = "waiting";
+
+    rocketGame.multiplier = 1;
+
+    resetRocketVisual();
+
+    updateRocketMultiplier();
+
+    let seconds = 5;
+
+    updateRocketStatus(
+        `Следующий запуск через ${seconds}`
+    );
+
+    updateRocketButtons();
+
+    const tick = () => {
+
+        if (rocketState !== "waiting") {
+            return;
+        }
+
+        seconds -= 1;
+
+        if (seconds <= 0) {
+
+            startRocketRound();
+
+            return;
+        }
+
+        updateRocketStatus(
+            `Следующий запуск через ${seconds}`
+        );
+
+        rocketGame.crashTimer =
+            setTimeout(
+                tick,
+                1000
+            );
+    };
+
+    rocketGame.crashTimer =
+        setTimeout(
+            tick,
+            1000
+        );
+}
+
+
+/* =========================================================
+   ROCKET CRASH
+========================================================= */
+
+function crashRocket() {
+
+    if (rocketState !== "flying") {
+        return;
+    }
+
+    cancelAnimationFrame(
+        rocketGame.animationFrame
+    );
+
+    rocketState = "crashed";
+
+    rocketGame.multiplier =
+        rocketGame.crashPoint;
+
+    updateRocketMultiplier();
+
+    updateRocketStatus(
+        `💥 Краш на ${rocketGame.crashPoint.toFixed(2)}x`
+    );
+
+    addRocketHistory(
+        rocketGame.crashPoint
+    );
+
+    if (
+        rocketGame.hasBet &&
+        !rocketGame.cashedOut
+    ) {
+
+        toast(
+            `💥 Ракета упала на ${rocketGame.crashPoint.toFixed(2)}x`
+        );
+    }
+
+    rocketGame.bet = 0;
+    rocketGame.hasBet = false;
+    rocketGame.cashedOut = false;
+
+    updateRocketButtons();
+
+    setTimeout(() => {
+
+        startRocketCountdown();
+
+    }, 2000);
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+function updateLeaderboard() {
+
+    const element =
+        $("leaderboard");
+
+    if (!element) {
+        return;
+    }
+
+    element.innerHTML = "";
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "leaderboardRow";
+
+    row.innerHTML = `
+        <div class="leaderPlace">
+            1
+        </div>
+
+        <div class="leaderInfo">
+
+            <div class="leaderName">
+                ${escapeHtml(currentUser.name)}
+            </div>
+
+            <div class="leaderStats">
+                🚀 ${Number(data.rocketBest || 0).toFixed(2)}x
+                · 💣 ${Number(data.minesBest || 0).toFixed(2)}x
+            </div>
+
+        </div>
+
+        <div class="leaderBalance">
+            ★ ${Math.floor(data.balance).toLocaleString("ru-RU")}
+        </div>
+    `;
+
+    element.appendChild(row);
+
+    const note =
+        document.createElement("div");
+
+    note.className =
+        "leaderboardEmpty";
+
+    note.textContent =
+        "Онлайн-топ появится после подключения сервера.";
+
+    element.appendChild(note);
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   ACHIEVEMENTS
+========================================================= */
+
+function checkAchievements() {
+
+    if (!Array.isArray(data.achievements)) {
+        data.achievements = [];
+    }
+
+    const achievements = [];
+
+    if (data.taps >= 10) {
+        achievements.push("10_taps");
+    }
+
+    if (data.taps >= 100) {
+        achievements.push("100_taps");
+    }
+
+    if (data.minesWins >= 5) {
+        achievements.push("5_mines");
+    }
+
+    if (data.rocketWins >= 5) {
+        achievements.push("5_rocket");
+    }
+
+    achievements.forEach(id => {
+
+        if (!data.achievements.includes(id)) {
+
+            data.achievements.push(id);
+
+            const messages = {
+                "10_taps":
+                    "🏆 10 нажатий!",
+                "100_taps":
+                    "🏆 100 нажатий!",
+                "5_mines":
+                    "🏆 5 побед в Минах!",
+                "5_rocket":
+                    "🏆 5 побед в Rocket!"
+            };
+
+            if (messages[id]) {
+                toast(messages[id]);
+            }
+        }
+    });
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+    );
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+function setupInputs() {
+
+    const inputs = [
+        $("minesBet"),
+        $("rocketBet")
+    ];
+
+    inputs.forEach(input => {
+
+        if (!input) {
+            return;
+        }
+
+        input.addEventListener(
+            "input",
+            () => {
+
+                let value =
+                    Math.floor(
+                        Number(input.value)
+                    );
+
+                if (
+                    !Number.isFinite(value) ||
+                    value < 0
+                ) {
+
+                    input.value = "";
+                }
+            }
+        );
+    });
+
+
+    const mineCount =
+        $("mineCount");
+
+    if (mineCount) {
+
+        mineCount.addEventListener(
+            "change",
+            () => {
+
+                let value =
+                    Math.floor(
+                        Number(mineCount.value)
+                    );
+
+                if (
+                    !Number.isFinite(value)
+                ) {
+                    value = 5;
+                }
+
+                value =
+                    Math.max(
+                        1,
+                        Math.min(24, value)
+                    );
+
+                mineCount.value = value;
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+function initGame() {
+
+    setupInputs();
+
+    createMinesBoard();
+
+    updateMinesButtons();
+
+    updateMinesMultiplier();
+
+    renderRocketHistory();
+
+    updateAllUI();
+
+    resetRocketVisual();
+
+    checkAchievements();
+
+    startRocketCountdown();
+
+    console.log(
+        "GAME HUB initialized successfully"
+    );
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initGame
+    );
+
+} else {
+
+    initGame();
+       }
+                       
