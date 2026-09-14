@@ -979,6 +979,102 @@ function resetRocketVisual() {
 
 function animateRocket() {
     const ship = $("rocketShip");
+       if (ship && !ship.dataset.neonRocket) {
+        ship.dataset.neonRocket = "1";
+
+        ship.innerHTML = `
+            <svg
+                viewBox="0 0 80 100"
+                width="70"
+                height="88"
+                xmlns="http://www.w3.org/2000/svg"
+                style="display:block; overflow:visible;"
+            >
+                <defs>
+                    <linearGradient id="rocketBody" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#ffffff"/>
+                        <stop offset="45%" stop-color="#d8d8ff"/>
+                        <stop offset="100%" stop-color="#7777ff"/>
+                    </linearGradient>
+
+                    <linearGradient id="rocketWindow" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#9fffff"/>
+                        <stop offset="100%" stop-color="#635bff"/>
+                    </linearGradient>
+
+                    <linearGradient id="rocketFire" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffffff"/>
+                        <stop offset="35%" stop-color="#65f6ff"/>
+                        <stop offset="70%" stop-color="#7b5cff"/>
+                        <stop offset="100%" stop-color="#ff4fd8"/>
+                    </linearGradient>
+
+                    <filter id="rocketGlow">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- огонь -->
+                <path
+                    d="M40 76
+                       C30 86 32 96 40 100
+                       C48 96 50 86 40 76Z"
+                    fill="url(#rocketFire)"
+                    filter="url(#rocketGlow)"
+                />
+
+                <!-- корпус -->
+                <path
+                    d="M40 5
+                       C25 16 18 34 20 61
+                       L29 78
+                       L51 78
+                       L60 61
+                       C62 34 55 16 40 5Z"
+                    fill="url(#rocketBody)"
+                    stroke="#8d7cff"
+                    stroke-width="2"
+                    filter="url(#rocketGlow)"
+                />
+
+                <!-- окно -->
+                <circle
+                    cx="40"
+                    cy="38"
+                    r="10"
+                    fill="url(#rocketWindow)"
+                    stroke="#ffffff"
+                    stroke-width="2"
+                />
+
+                <!-- левое крыло -->
+                <path
+                    d="M21 56 L6 70 L25 68Z"
+                    fill="#7568ff"
+                    stroke="#a99fff"
+                    stroke-width="2"
+                />
+
+                <!-- правое крыло -->
+                <path
+                    d="M59 56 L74 70 L55 68Z"
+                    fill="#7568ff"
+                    stroke="#a99fff"
+                    stroke-width="2"
+                />
+            </svg>
+        `;
+
+        ship.style.width = "70px";
+        ship.style.height = "88px";
+        ship.style.fontSize = "0";
+        ship.style.transform = "rotate(0deg)";
+        ship.style.animation = "none";
+       }
     const trail = $("rocketTrail");
 
     if (!ship) {
