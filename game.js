@@ -1197,10 +1197,10 @@ function animateRocket() {
 `;
 
         ship.style.width = "100px";
-        ship.style.height = "68px";
-        ship.style.fontSize = "0";
-        ship.style.transform = "rotate(0deg)";
-        ship.style.animation = "none";
+ship.style.height = "68px";
+ship.style.fontSize = "0";
+ship.style.transform = "rotate(-45deg)";
+ship.style.animation = "none";
        }
     const trail = $("rocketTrail");
 
