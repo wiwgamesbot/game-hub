@@ -983,94 +983,221 @@ function animateRocket() {
         ship.dataset.neonRocket = "1";
 
         ship.innerHTML = `
-            <svg
-                viewBox="0 0 80 100"
-                width="70"
-                height="88"
-                xmlns="http://www.w3.org/2000/svg"
-                style="display:block; overflow:visible;"
-            >
-                <defs>
-                    <linearGradient id="rocketBody" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#ffffff"/>
-                        <stop offset="45%" stop-color="#d8d8ff"/>
-                        <stop offset="100%" stop-color="#7777ff"/>
-                    </linearGradient>
+<svg
+    viewBox="0 0 120 80"
+    width="100"
+    height="68"
+    xmlns="http://www.w3.org/2000/svg"
+    style="display:block; overflow:visible;"
+>
+    <defs>
 
-                    <linearGradient id="rocketWindow" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#9fffff"/>
-                        <stop offset="100%" stop-color="#635bff"/>
-                    </linearGradient>
+        <!-- корпус -->
+        <linearGradient id="rocketBody2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#e9e4ff"/>
+            <stop offset="70%" stop-color="#9d7cff"/>
+            <stop offset="100%" stop-color="#684cff"/>
+        </linearGradient>
 
-                    <linearGradient id="rocketFire" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#ffffff"/>
-                        <stop offset="35%" stop-color="#65f6ff"/>
-                        <stop offset="70%" stop-color="#7b5cff"/>
-                        <stop offset="100%" stop-color="#ff4fd8"/>
-                    </linearGradient>
+        <!-- окно -->
+        <radialGradient id="rocketWindow2">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#65ffff"/>
+            <stop offset="75%" stop-color="#398cff"/>
+            <stop offset="100%" stop-color="#653cff"/>
+        </radialGradient>
 
-                    <filter id="rocketGlow">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feMerge>
-                            <feMergeNode in="blur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                </defs>
+        <!-- пламя -->
+        <linearGradient id="flameOuter2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ff38d1"/>
+            <stop offset="35%" stop-color="#8b4dff"/>
+            <stop offset="70%" stop-color="#39cfff"/>
+            <stop offset="100%" stop-color="#ffffff"/>
+        </linearGradient>
 
-                <!-- огонь -->
-                <path
-                    d="M40 76
-                       C30 86 32 96 40 100
-                       C48 96 50 86 40 76Z"
-                    fill="url(#rocketFire)"
-                    filter="url(#rocketGlow)"
-                />
+        <linearGradient id="flameInner2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ff75e8"/>
+            <stop offset="45%" stop-color="#9c7aff"/>
+            <stop offset="100%" stop-color="#bfffff"/>
+        </linearGradient>
 
-                <!-- корпус -->
-                <path
-                    d="M40 5
-                       C25 16 18 34 20 61
-                       L29 78
-                       L51 78
-                       L60 61
-                       C62 34 55 16 40 5Z"
-                    fill="url(#rocketBody)"
-                    stroke="#8d7cff"
-                    stroke-width="2"
-                    filter="url(#rocketGlow)"
-                />
+        <filter id="rocketGlow2">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
 
-                <!-- окно -->
-                <circle
-                    cx="40"
-                    cy="38"
-                    r="10"
-                    fill="url(#rocketWindow)"
-                    stroke="#ffffff"
-                    stroke-width="2"
-                />
+        <filter id="flameGlow2">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
 
-                <!-- левое крыло -->
-                <path
-                    d="M21 56 L6 70 L25 68Z"
-                    fill="#7568ff"
-                    stroke="#a99fff"
-                    stroke-width="2"
-                />
+        <style>
+            .flameOuter2 {
+                transform-origin: 19px 40px;
+                animation: flamePulse2 .16s infinite alternate ease-in-out;
+            }
 
-                <!-- правое крыло -->
-                <path
-                    d="M59 56 L74 70 L55 68Z"
-                    fill="#7568ff"
-                    stroke="#a99fff"
-                    stroke-width="2"
-                />
-            </svg>
-        `;
+            .flameInner2 {
+                transform-origin: 25px 40px;
+                animation: flamePulseInner2 .11s infinite alternate ease-in-out;
+            }
 
-        ship.style.width = "70px";
-        ship.style.height = "88px";
+            .flameGlow2 {
+                animation: flameGlowPulse2 .22s infinite alternate ease-in-out;
+            }
+
+            @keyframes flamePulse2 {
+                from {
+                    transform: scaleX(.78) scaleY(.82);
+                    opacity: .78;
+                }
+                to {
+                    transform: scaleX(1.18) scaleY(1.08);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes flamePulseInner2 {
+                from {
+                    transform: scaleX(.65) scaleY(.8);
+                }
+                to {
+                    transform: scaleX(1.25) scaleY(1.15);
+                }
+            }
+
+            @keyframes flameGlowPulse2 {
+                from {
+                    opacity: .45;
+                }
+                to {
+                    opacity: .9;
+                }
+            }
+        </style>
+    </defs>
+
+    <!-- большое неоновое свечение пламени -->
+    <path
+        class="flameGlow2"
+        d="M42 40
+           C31 31 18 27 3 32
+           C12 39 10 46 2 51
+           C19 53 31 49 42 40Z"
+        fill="#8b4dff"
+        opacity=".55"
+        filter="url(#flameGlow2)"
+    />
+
+    <!-- основное пламя -->
+    <path
+        class="flameOuter2"
+        d="M48 40
+           C36 31 21 30 5 35
+           C15 40 14 43 4 48
+           C22 51 36 48 48 40Z"
+        fill="url(#flameOuter2)"
+        filter="url(#flameGlow2)"
+    />
+
+    <!-- внутреннее пламя -->
+    <path
+        class="flameInner2"
+        d="M49 40
+           C39 35 29 35 17 39
+           C25 41 24 43 16 46
+           C29 47 40 44 49 40Z"
+        fill="url(#flameInner2)"
+    />
+
+    <!-- левое крыло -->
+    <path
+        d="M57 28
+           L45 16
+           L49 34Z"
+        fill="#734cff"
+        stroke="#b79cff"
+        stroke-width="1.5"
+    />
+
+    <!-- правое крыло -->
+    <path
+        d="M58 52
+           L45 64
+           L50 46Z"
+        fill="#734cff"
+        stroke="#b79cff"
+        stroke-width="1.5"
+    />
+
+    <!-- корпус ракеты -->
+    <path
+        d="M45 25
+           C55 17 72 14 91 20
+           L108 40
+           L91 60
+           C72 66 55 63 45 55
+           C39 48 39 32 45 25Z"
+        fill="url(#rocketBody2)"
+        stroke="#9276ff"
+        stroke-width="2"
+        filter="url(#rocketGlow2)"
+    />
+
+    <!-- нос -->
+    <path
+        d="M91 20
+           L108 40
+           L91 60
+           C96 49 98 31 91 20Z"
+        fill="#cfc8ff"
+        stroke="#8d73ff"
+        stroke-width="1.5"
+    />
+
+    <!-- окно -->
+    <circle
+        cx="72"
+        cy="40"
+        r="10"
+        fill="url(#rocketWindow2)"
+        stroke="#ffffff"
+        stroke-width="2"
+        filter="url(#rocketGlow2)"
+    />
+
+    <!-- маленькое отражение окна -->
+    <circle
+        cx="69"
+        cy="37"
+        r="3"
+        fill="#ffffff"
+        opacity=".9"
+    />
+
+    <!-- заднее сопло -->
+    <rect
+        x="40"
+        y="32"
+        width="9"
+        height="16"
+        rx="4"
+        fill="#5d43c9"
+        stroke="#9d8aff"
+        stroke-width="1.5"
+    />
+</svg>
+`;
+
+        ship.style.width = "100px";
+        ship.style.height = "68px";
         ship.style.fontSize = "0";
         ship.style.transform = "rotate(0deg)";
         ship.style.animation = "none";
